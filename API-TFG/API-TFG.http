@@ -1,0 +1,6 @@
+@API_TFG_HostAddress = http://localhost:5016
+
+GET {{API_TFG_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
