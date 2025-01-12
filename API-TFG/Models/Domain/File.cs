@@ -9,10 +9,10 @@ namespace API_TFG.Models.Domain
 
         [Required]
         [MaxLength(255)]
-        public string FileName { get; set; } = null!;
+        public required string FileName { get; set; }
 
         [Required]
-        public string FilePath { get; set; } = null!;
+        public required string FilePath { get; set; }
 
         public long FileSize { get; set; }
 
@@ -20,11 +20,9 @@ namespace API_TFG.Models.Domain
 
         public bool IsDeleted { get; set; } = false;
 
-        //Foreign Key
-        [Required]
-        public Guid OwnerID { get; set; }
+        //Relacion con User
 
-        public User Owner { get; set; } = null!;
+        public required User Owner { get; set; }
 
         //Propiedades de navegación
         public ICollection<UserFile> SharedWithUsers { get; set; } = new List<UserFile>();

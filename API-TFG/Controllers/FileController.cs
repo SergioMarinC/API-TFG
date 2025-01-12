@@ -1,4 +1,5 @@
 ﻿using API_TFG.Data;
+using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
 using API_TFG.Repositories;
 using AutoMapper;
@@ -62,13 +63,78 @@ namespace API_TFG.Controllers
         }
 
         //UPLOAD A FILE
+        [HttpPost]
+        public async Task<IActionResult> UploadFile([FromForm] FileUploadDto fileUploadDto)
+        {
+            if (ModelState.IsValid)
+            {
+                var file = mapper.Map<Models.Domain.File>(fileUploadDto);
+
+                var savedFile = await fileRepository.UploadAsync(file, fileUploadDto.UploadedFile);
+
+                return Ok(mapper.Map<FileDto>(savedFile));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        //UPDATE FILE
+        [HttpPut]
+        [Route("{id:Guid}")]
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateFileRequestDto updateFileRequestDto)
+        {
+            if (ModelState.IsValid)
+            {
+                var updatedFile = mapper.Map<Models.Domain.File>(updateFileRequestDto);
+
+                var file = await fileRepository.UpdateAsync(id, updatedFile);
+
+                if (file == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(mapper.Map<FileDto>(file));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpGet]
+        [Route("download/{id:Guid}")]
+        public async Task<IActionResult> DownloadFile([FromRoute] Guid id)
+        {
+            // Llamar al repositorio para obtener el archivo y su contenido
+            var (file, fileContent) = await fileRepository.DownloadAsync(id);
+
+            if (file == null)
+            {
+                return NotFound("File not found in the database.");
+            }
+
+            if (fileContent == null)
+            {
+                return NotFound("File does not exist on the server.");
+            }
+
+            // Determinar el tipo MIME
+            var contentType = fileRepository.GetContentType(file.FilePath);
+
+            // Devolver el archivo como respuesta
+            return File(fileContent, contentType, file.FileName);
+        }
+
 
         //REMOVE FILE FROM (BOOL FALSE)
         [HttpDelete]
         [Route("remove/{id:Guid}")]
         public async Task<IActionResult> Remove([FromRoute] Guid id)
         {
-            var file = await fileRepository.RemoveAsync(id);
+            var file = await fileRepository.SoftDelete(id);
 
             if(file == null)
             {
@@ -83,7 +149,7 @@ namespace API_TFG.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var file = await fileRepository.DeleteAsync(id);
+            var file = await fileRepository.HardDelete(id);
 
             if (file == null)
             {

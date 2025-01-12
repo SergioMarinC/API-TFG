@@ -6,9 +6,9 @@ namespace API_TFG.Models.DTO
     {
         public Guid FileID { get; set; }
 
-        public string FileName { get; set; } = null!;
+        public required string FileName { get; set; }
 
-        public string FilePath { get; set; } = null!;
+        public required string FilePath { get; set; }
 
         public long FileSize { get; set; }
 

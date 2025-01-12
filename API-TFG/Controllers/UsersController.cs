@@ -53,13 +53,20 @@ namespace API_TFG.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddUserRequestDto addUserRequestDto)
         {
-            var user = mapper.Map<User>(addUserRequestDto);
+            if (ModelState.IsValid)
+            {
+                var user = mapper.Map<User>(addUserRequestDto);
 
-            user = await userRepository.CreateAsync(user);
+                user = await userRepository.CreateAsync(user);
 
-            var userDto = mapper.Map<UserDto>(user);
+                var userDto = mapper.Map<UserDto>(user);
 
-            return CreatedAtAction(nameof(GetById), new { id = userDto.UserID}, userDto);
+                return CreatedAtAction(nameof(GetById), new { id = userDto.UserID }, userDto);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         //UPDATE USER
@@ -67,16 +74,22 @@ namespace API_TFG.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateUserRequestDto updateUserRequestDto)
         {
-            var user = mapper.Map<User>(updateUserRequestDto);
-
-            user = await userRepository.UpdateAsync(id, user);
-
-            if (user == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
-            }
+                var user = mapper.Map<User>(updateUserRequestDto);
 
-            return Ok(mapper.Map<UserDto>(user));
+                user = await userRepository.UpdateAsync(id, user);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(mapper.Map<UserDto>(user));
+            }else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         //DELETE USER

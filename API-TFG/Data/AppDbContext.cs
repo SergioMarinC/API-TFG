@@ -19,7 +19,6 @@ namespace API_TFG.Data
             modelBuilder.Entity<File>()
                 .HasOne(f => f.Owner)
                 .WithMany(u => u.Files)
-                .HasForeignKey(f => f.OwnerID)
                 .OnDelete(DeleteBehavior.Cascade); // Archivos eliminados al eliminar usuario
 
             // Configuración de UserFile
