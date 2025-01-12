@@ -27,12 +27,12 @@ namespace API_TFG.Repositories
 
         public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id)
         {
-            if (!await dbContext.Files.AnyAsync(f => f.OwnerID == id))
+            if (!await dbContext.Files.AnyAsync(f => f.Owner.UserID == id))
             {
                 return null;
             }
 
-            return await dbContext.Files.Where(f => f.OwnerID == id && !f.IsDeleted).ToListAsync();
+            return await dbContext.Files.Where(f => f.Owner.UserID == id && !f.IsDeleted).ToListAsync();
         }
 
         public Task<Models.Domain.File> ShareAsync(Guid id)
@@ -53,7 +53,7 @@ namespace API_TFG.Repositories
             var baseUploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
 
             // Ruta antigua: dentro de la carpeta del usuario
-            var userRootFolder = Path.Combine(baseUploadsPath, existingFile.OwnerID.ToString());
+            var userRootFolder = Path.Combine(baseUploadsPath, existingFile.Owner.UserID.ToString());
             var oldFilePath = Path.Combine(userRootFolder, existingFile.FilePath ?? string.Empty, existingFile.FileName);
 
             // Nueva ruta: carpeta del usuario + nueva subcarpeta (si se proporciona) + nuevo nombre de archivo
@@ -117,7 +117,7 @@ namespace API_TFG.Repositories
             }
             
             var baseUploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            var userRootFolder = Path.Combine(baseUploadsPath, existingFile.OwnerID.ToString());
+            var userRootFolder = Path.Combine(baseUploadsPath, existingFile.Owner.UserID.ToString());
             var filePath = Path.Combine(userRootFolder, existingFile.FilePath ?? string.Empty, existingFile.FileName);
 
             // Verificar si el archivo existe físicamente
@@ -143,7 +143,7 @@ namespace API_TFG.Repositories
 
         public async Task<Models.Domain.File> UploadAsync(Models.Domain.File file, IFormFile formFile)
         {
-            var userRootFolder = Path.Combine("uploads", file.OwnerID.ToString());
+            var userRootFolder = Path.Combine("uploads", file.Owner.UserID.ToString());
 
             var targetFolder = string.IsNullOrWhiteSpace(file.FilePath) ? userRootFolder : Path.Combine(userRootFolder, file.FilePath);
 
@@ -175,7 +175,7 @@ namespace API_TFG.Repositories
                 return (null, null); // Archivo no encontrado
             }
 
-            var userRootFolder = Path.Combine("uploads", file.OwnerID.ToString());
+            var userRootFolder = Path.Combine("uploads", file.Owner.UserID.ToString());
             var fullFilePath = Path.Combine(userRootFolder,file.FilePath,file.FileName);
 
             // Verificar si el archivo existe físicamente

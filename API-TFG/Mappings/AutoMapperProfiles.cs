@@ -22,7 +22,7 @@ namespace API_TFG.Mappings
                 .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FolderPath ?? string.Empty)) // Se asignará manualmente
                 .ForMember(dest => dest.FileSize, opt => opt.MapFrom(src => src.UploadedFile.Length)) // Tamaño del archivo
                 .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow)) // Fecha actual
-                .ForMember(dest => dest.OwnerID, opt => opt.MapFrom(src => src.OwnerID)) // Propietario
+                .ForMember(dest => dest.Owner, opt => opt.Ignore())
                 .ForMember(dest => dest.SharedWithUsers, opt => opt.Ignore()) // Propiedad de navegación
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => false)) // Por defecto, no eliminado
                 .ReverseMap();
