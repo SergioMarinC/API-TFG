@@ -23,14 +23,14 @@ namespace API_TFG.Data
 
             // Configuración de UserFile
             modelBuilder.Entity<UserFile>()
-                .HasOne(uf => uf.File)
-                .WithMany(f => f.SharedWithUsers)
-                .HasForeignKey(uf => uf.FileID);
+                .HasOne(uf => uf.File) // Relación con File
+                .WithMany(f => f.SharedWithUsers) // Un archivo puede ser compartido con muchos usuarios
+                .OnDelete(DeleteBehavior.Cascade); // Eliminar registros en cascada
 
             modelBuilder.Entity<UserFile>()
-                .HasOne(uf => uf.User)
-                .WithMany()
-                .HasForeignKey(uf => uf.UserID);
+                .HasOne(uf => uf.User) // Relación con User
+                .WithMany() // Un usuario puede compartir muchos archivos
+                .OnDelete(DeleteBehavior.Cascade); // Eliminar registros en cascada
 
             // Configuración de AuditLog
             modelBuilder.Entity<AuditLog>()

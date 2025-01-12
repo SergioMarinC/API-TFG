@@ -10,13 +10,10 @@ namespace API_TFG.Models.Domain
 
         // Foreign Keys
         [Required]
-        public Guid FileID { get; set; }
+        public required File File { get; set; }
 
-        public File File { get; set; } = null!;
-
-        public Guid? UserID { get; set; }
-
-        public User? User { get; set; }
+        [Required]
+        public required User User { get; set; }
 
         [Required]
         [MaxLength(10)]
