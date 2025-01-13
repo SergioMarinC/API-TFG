@@ -12,13 +12,11 @@ namespace API_TFG.Controllers
     [ApiController]
     public class FileController : ControllerBase
     {
-        private readonly AppDbContext dbContext;
         private readonly IFileRepository fileRepository;
         private readonly IMapper mapper;
 
-        public FileController(AppDbContext dbContext, IFileRepository fileRepository, IMapper mapper)
+        public FileController(IFileRepository fileRepository, IMapper mapper)
         {
-            this.dbContext = dbContext;
             this.fileRepository = fileRepository;
             this.mapper = mapper;
         }

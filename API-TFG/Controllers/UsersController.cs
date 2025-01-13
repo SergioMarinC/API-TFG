@@ -13,13 +13,11 @@ namespace API_TFG.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly AppDbContext dbContext;
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
 
-        public UsersController(AppDbContext dbContext, IUserRepository userRepository, IMapper mapper)
+        public UsersController(IUserRepository userRepository, IMapper mapper)
         {
-            this.dbContext = dbContext;
             this.userRepository = userRepository;
             this.mapper = mapper;
         }

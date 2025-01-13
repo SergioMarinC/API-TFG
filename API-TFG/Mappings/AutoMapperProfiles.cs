@@ -1,5 +1,6 @@
 ﻿using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
+using API_TFG.Repositories;
 using AutoMapper;
 using File = API_TFG.Models.Domain.File;
 
@@ -9,12 +10,12 @@ namespace API_TFG.Mappings
     {
         public AutoMapperProfiles()
         {
-            // Mapeo de usuarios
+            // Map User
             CreateMap<User, UserDto>().ReverseMap();
             CreateMap<AddUserRequestDto, User>().ReverseMap();
             CreateMap<UpdateUserRequestDto, User>().ReverseMap();
 
-            // Mapeo de archivos
+            // Map File
             CreateMap<File, FileDto>().ReverseMap();
             CreateMap<FileUploadDto, File>()
                 .ForMember(dest => dest.FileID, opt => opt.MapFrom(src => Guid.NewGuid())) // Generar ID único
@@ -29,6 +30,22 @@ namespace API_TFG.Mappings
             CreateMap<UpdateFileRequestDto, File>()
                 .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FolderPath ?? string.Empty))
                 .ReverseMap();
+
+            //Map UserFile
+            CreateMap<ShareFileDto, UserFile>()
+            .ForMember(dest => dest.File, opt => opt.MapFrom<FileResolver>())
+            .ForMember(dest => dest.User, opt => opt.MapFrom(src => new User { UserID = src.UserID }))
+            .ForMember(dest => dest.PermissionType, opt => opt.MapFrom(src => src.PermissionType))
+            .ForMember(dest => dest.SharedDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
+            .ReverseMap();
+            CreateMap<UserFile, UserFileDto>()
+            .ForMember(dest => dest.UserFileID, opt => opt.MapFrom(src => src.UserFileID))
+            .ForMember(dest => dest.FileID, opt => opt.MapFrom(src => src.File.FileID))
+            .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.File.FileName))
+            .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.File.Owner.Username))
+            .ForMember(dest => dest.PermissionType, opt => opt.MapFrom(src => src.PermissionType))
+            .ForMember(dest => dest.SharedDate, opt => opt.MapFrom(src => src.SharedDate))
+            .ReverseMap();
         }
     }
 }

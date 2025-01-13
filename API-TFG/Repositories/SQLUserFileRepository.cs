@@ -1,5 +1,6 @@
 ﻿using API_TFG.Data;
 using API_TFG.Models.Domain;
+using API_TFG.Models.Enum;
 using Microsoft.EntityFrameworkCore;
 
 namespace API_TFG.Repositories
@@ -57,7 +58,7 @@ namespace API_TFG.Repositories
             return userFile;
         }
 
-        public async Task<UserFile?> UpdatePermissionsAsync(int userFileId, UserFile userFile)
+        public async Task<UserFile?> UpdatePermissionsAsync(int userFileId, PermissionType permissionType)
         {
             var existingUserFile = await dbContext.UserFiles.FindAsync(userFileId);
 
@@ -66,7 +67,7 @@ namespace API_TFG.Repositories
                 return null;
             }
 
-            existingUserFile.PermissionType = userFile.PermissionType;
+            existingUserFile.PermissionType = permissionType;
             dbContext.UserFiles.Update(existingUserFile);
             await dbContext.SaveChangesAsync();
 
