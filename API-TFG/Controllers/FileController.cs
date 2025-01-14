@@ -13,10 +13,10 @@ namespace API_TFG.Controllers
     public class FileController : ControllerBase
     {
         private readonly IFileRepository fileRepository;
-        private readonly IAuditLog auditLogRepository;
+        private readonly IAuditLogRepository auditLogRepository;
         private readonly IMapper mapper;
 
-        public FileController(IFileRepository fileRepository, IAuditLog auditLogRepository, IMapper mapper)
+        public FileController(IFileRepository fileRepository, IAuditLogRepository auditLogRepository, IMapper mapper)
         {
             this.fileRepository = fileRepository;
             this.auditLogRepository = auditLogRepository;
@@ -195,6 +195,32 @@ namespace API_TFG.Controllers
             var auditLog = mapper.Map<AuditLog>(file);
 
             auditLog.Action = Models.Enum.ActionType.Remove;
+
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
+
+            return Ok(mapper.Map<FileDto>(file));
+        }
+
+        /// <summary>
+        /// Restore the removed file (changes the boolean IsDeleted to false)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>The restored file</returns>
+        [HttpPatch]
+        [Route("restore/{id:guid}")]
+        public async Task<IActionResult> Restore([FromRoute] Guid id)
+        {
+            var file = await fileRepository.Restore(id);
+
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(file);
+
+            auditLog.Action = Models.Enum.ActionType.Restore;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 

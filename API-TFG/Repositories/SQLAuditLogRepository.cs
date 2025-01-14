@@ -3,7 +3,7 @@ using API_TFG.Models.Domain;
 
 namespace API_TFG.Repositories
 {
-    public class SQLAuditLogRepository : IAuditLog
+    public class SQLAuditLogRepository : IAuditLogRepository
     {
         private readonly AppDbContext dbContext;
 

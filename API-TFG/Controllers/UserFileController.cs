@@ -13,11 +13,13 @@ namespace API_TFG.Controllers
     public class UserFileController : ControllerBase
     {
         private readonly IUserFileRepository userFileRepository;
+        private readonly IAuditLogRepository auditLogRepository;
         private readonly IMapper mapper;
 
-        public UserFileController(IUserFileRepository userFileRepository, IMapper mapper)
+        public UserFileController(IUserFileRepository userFileRepository, IAuditLogRepository auditLogRepository, IMapper mapper)
         {
             this.userFileRepository = userFileRepository;
+            this.auditLogRepository = auditLogRepository;
             this.mapper = mapper;
         }
 

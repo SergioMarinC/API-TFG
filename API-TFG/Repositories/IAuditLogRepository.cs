@@ -2,7 +2,7 @@
 
 namespace API_TFG.Repositories
 {
-    public interface IAuditLog
+    public interface IAuditLogRepository
     {
         Task CreateAuditLogAsync(AuditLog auditLog);
     }

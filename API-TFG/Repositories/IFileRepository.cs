@@ -12,6 +12,7 @@ namespace API_TFG.Repositories
         Task<File?> UpdateAsync(Guid id, File file);
         Task<File?> SoftDelete(Guid id);
         Task<File?> HardDelete(Guid id);
+        Task<File?> Restore(Guid id);
         Task<File> ShareAsync(Guid id);
         Task<(File? file, byte[]? fileContent)> DownloadAsync(Guid id);
         Task<List<File>?> GetAllByUserIdAsync(Guid id);

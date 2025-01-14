@@ -202,5 +202,21 @@ namespace API_TFG.Repositories
                 _ => "application/octet-stream",
             };
         }
+
+        public async Task<Models.Domain.File?> Restore(Guid id)
+        {
+            var existingFile = await dbContext.Files.FindAsync(id);
+
+            if (existingFile == null)
+            {
+                return null;
+            }
+
+            existingFile.IsDeleted = false;
+
+            await dbContext.SaveChangesAsync();
+
+            return existingFile;
+        }
     }
 }
