@@ -46,6 +46,11 @@ namespace API_TFG.Mappings
             .ForMember(dest => dest.PermissionType, opt => opt.MapFrom(src => src.PermissionType))
             .ForMember(dest => dest.SharedDate, opt => opt.MapFrom(src => src.SharedDate))
             .ReverseMap();
+
+            //Map AuditLog
+            CreateMap<File, AuditLog>()
+                .ForMember(dest => dest.Action, opt => opt.Ignore())
+                .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(_ => DateTime.UtcNow));
         }
     }
 }

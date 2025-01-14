@@ -18,6 +18,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 builder.Services.AddScoped<IUserRepository, SQLUserRepository>();
 builder.Services.AddScoped<IFileRepository, SQLFileRepository>();
 builder.Services.AddScoped<IUserFileRepository, SQLUserFileRepository>();
+builder.Services.AddScoped<IAuditLog, SQLAuditLogRepository>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 

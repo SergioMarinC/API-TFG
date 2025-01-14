@@ -13,15 +13,20 @@ namespace API_TFG.Controllers
     public class FileController : ControllerBase
     {
         private readonly IFileRepository fileRepository;
+        private readonly IAuditLog auditLogRepository;
         private readonly IMapper mapper;
 
-        public FileController(IFileRepository fileRepository, IMapper mapper)
+        public FileController(IFileRepository fileRepository, IAuditLog auditLogRepository, IMapper mapper)
         {
             this.fileRepository = fileRepository;
+            this.auditLogRepository = auditLogRepository;
             this.mapper = mapper;
         }
 
-        //GET ALL FILES
+        /// <summary>
+        /// Get all files in the database
+        /// </summary>
+        /// <returns>List of Files</returns>
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -30,7 +35,11 @@ namespace API_TFG.Controllers
             return Ok(mapper.Map<List<FileDto>>(files));
         }
 
-        //GET BY ID
+        /// <summary>
+        /// Get file by ID of the file
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>File</returns>
         [HttpGet]
         [Route("{id:Guid}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
@@ -45,7 +54,11 @@ namespace API_TFG.Controllers
             return Ok(mapper.Map<FileDto>(file));
         }
 
-        //GET ALL BY USER ID
+        /// <summary>
+        /// Gets all the files by the ID of the User
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>List of Files</returns>
         [HttpGet]
         [Route("user/{id:Guid}")]
         public async Task<IActionResult> GetByUserId([FromRoute] Guid id)
@@ -60,7 +73,11 @@ namespace API_TFG.Controllers
             return Ok(mapper.Map<List<FileDto>>(files));
         }
 
-        //UPLOAD A FILE
+        /// <summary>
+        /// Creates a file and uploads the real file to the folder
+        /// </summary>
+        /// <param name="fileUploadDto"></param>
+        /// <returns>File</returns>
         [HttpPost]
         public async Task<IActionResult> UploadFile([FromForm] FileUploadDto fileUploadDto)
         {
@@ -70,6 +87,13 @@ namespace API_TFG.Controllers
 
                 var savedFile = await fileRepository.UploadAsync(file, fileUploadDto.UploadedFile);
 
+                //AuditLog
+                var auditLog = mapper.Map<AuditLog>(savedFile);
+                
+                auditLog.Action = Models.Enum.ActionType.Upload;
+                
+                await auditLogRepository.CreateAuditLogAsync(auditLog);
+
                 return Ok(mapper.Map<FileDto>(savedFile));
             }
             else
@@ -78,7 +102,12 @@ namespace API_TFG.Controllers
             }
         }
 
-        //UPDATE FILE
+        /// <summary>
+        /// Updates the name and the folder path of a existing File, it changes the place of it in the folder
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="updateFileRequestDto"></param>
+        /// <returns>The updated File</returns>
         [HttpPut]
         [Route("{id:Guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateFileRequestDto updateFileRequestDto)
@@ -94,6 +123,13 @@ namespace API_TFG.Controllers
                     return NotFound();
                 }
 
+                //AuditLog
+                var auditLog = mapper.Map<AuditLog>(file);
+
+                auditLog.Action = Models.Enum.ActionType.Update;
+
+                await auditLogRepository.CreateAuditLogAsync(auditLog);
+
                 return Ok(mapper.Map<FileDto>(file));
             }
             else
@@ -102,6 +138,11 @@ namespace API_TFG.Controllers
             }
         }
 
+        /// <summary>
+        /// Download the File
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Real File from the folder</returns>
         [HttpGet]
         [Route("download/{id:Guid}")]
         public async Task<IActionResult> DownloadFile([FromRoute] Guid id)
@@ -119,6 +160,13 @@ namespace API_TFG.Controllers
                 return NotFound("File does not exist on the server.");
             }
 
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(file);
+
+            auditLog.Action = Models.Enum.ActionType.Download;
+
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
+
             // Determinar el tipo MIME
             var contentType = fileRepository.GetContentType(file.FilePath);
 
@@ -127,7 +175,11 @@ namespace API_TFG.Controllers
         }
 
 
-        //REMOVE FILE FROM (BOOL FALSE)
+        /// <summary>
+        /// Changes the state of the file to "deleted", is a soft delete
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Returns the file you softDeleted</returns>
         [HttpDelete]
         [Route("remove/{id:Guid}")]
         public async Task<IActionResult> Remove([FromRoute] Guid id)
@@ -139,10 +191,21 @@ namespace API_TFG.Controllers
                 return NotFound();
             }
 
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(file);
+
+            auditLog.Action = Models.Enum.ActionType.Remove;
+
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
+
             return Ok(mapper.Map<FileDto>(file));
         }
 
-        //DELETE FILE FROM DATABASE
+        /// <summary>
+        /// Delete the file and the file in the folder, HARD DELETE
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete]
         [Route("{id:Guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
@@ -153,6 +216,13 @@ namespace API_TFG.Controllers
             {
                 return NotFound();
             }
+
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(file);
+
+            auditLog.Action = Models.Enum.ActionType.Delete;
+
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
 
             return Ok(mapper.Map<FileDto>(file));
         }

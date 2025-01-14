@@ -5,11 +5,9 @@
         Upload = 1,          // Subir archivo
         Download = 2,        // Descargar archivo
         Delete = 3,          // Eliminar archivo
-        Share = 4,           // Compartir archivo
-        Edit = 5,            // Editar archivo o metadatos
-        View = 6,            // Ver archivo
-        Rename = 7,          // Renombrar archivo
-        Move = 8,            // Mover archivo
-        Restore = 9          // Restaurar archivo eliminado
+        Remove = 4,          // Cambia el valor 
+        Share = 5,           // Compartir archivo
+        Update = 6,          // Editar archivo o metadatos      
+        Restore = 7          // Restaurar archivo eliminado
     }
 }
