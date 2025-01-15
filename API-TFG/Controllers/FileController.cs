@@ -194,7 +194,7 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.Remove;
+            auditLog.Action = Models.Enum.ActionType.SoftDelete;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
@@ -246,7 +246,7 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.Delete;
+            auditLog.Action = Models.Enum.ActionType.HardDelete;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 

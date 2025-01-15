@@ -51,6 +51,15 @@ namespace API_TFG.Mappings
             CreateMap<File, AuditLog>()
                 .ForMember(dest => dest.Action, opt => opt.Ignore())
                 .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            CreateMap<UserFile, AuditLog>()
+            .ForMember(dest => dest.UserID, opt => opt.MapFrom(src => src.User.UserID))
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Username))
+            .ForMember(dest => dest.FileID, opt => opt.MapFrom(src => src.File.FileID))
+            .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.File.FileName))
+            .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.File.FilePath))
+            .ForMember(dest => dest.FileSize, opt => opt.MapFrom(src => src.File.FileSize))
+            .ForMember(dest => dest.Action, opt => opt.Ignore()) // La acción se establecerá manualmente
+            .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(_ => DateTime.UtcNow));
         }
     }
 }

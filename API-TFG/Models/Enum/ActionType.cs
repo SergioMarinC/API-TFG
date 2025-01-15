@@ -4,10 +4,12 @@
     {
         Upload = 1,          // Subir archivo
         Download = 2,        // Descargar archivo
-        Delete = 3,          // Eliminar archivo
-        Remove = 4,          // Cambia el valor 
-        Share = 5,           // Compartir archivo
-        Update = 6,          // Editar archivo o metadatos      
-        Restore = 7          // Restaurar archivo eliminado
+        SoftDelete = 3,      // Eliminación lógica (IsDeleted = true)
+        HardDelete = 4,      // Eliminación definitiva del archivo de la base de datos
+        Share = 5,           // Compartir archivo con otro usuario
+        UpdatePermissions = 6, // Actualizar los permisos de acceso
+        Restore = 7,         // Restaurar archivo eliminado
+        RevokeAccess = 8,    // Revocar el acceso compartido de un usuario
+        Update = 9           // Actualizar file
     }
 }
