@@ -53,6 +53,14 @@ namespace API_TFG.Controllers
         [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddUserRequestDto addUserRequestDto)
         {
+            if (await userRepository.GetByUsernameAsync(addUserRequestDto.Username) != null)
+            {
+                return Conflict("The Username already exists in the database");
+            }
+            if (await userRepository.GetByEmailAsync(addUserRequestDto.Email) != null)
+            {
+                return Conflict("The Email already exists in the database");
+            }
             var user = mapper.Map<User>(addUserRequestDto);
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addUserRequestDto.Password);
@@ -70,16 +78,33 @@ namespace API_TFG.Controllers
         [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateUserRequestDto updateUserRequestDto)
         {
-            var user = mapper.Map<User>(updateUserRequestDto);
+            var existingUser = await userRepository.GetByIdAsync(id);
 
-            user = await userRepository.UpdateAsync(id, user);
-
-            if (user == null)
+            if (existingUser == null)
             {
                 return NotFound();
             }
 
-            return Ok(mapper.Map<UserDto>(user));
+            // Mapear solo los campos no nulos del DTO al modelo existente
+            if (!string.IsNullOrEmpty(updateUserRequestDto.Username))
+            {
+                existingUser.Username = updateUserRequestDto.Username;
+            }
+
+            if (!string.IsNullOrEmpty(updateUserRequestDto.Email))
+            {
+                existingUser.Email = updateUserRequestDto.Email;
+            }
+
+            if (!string.IsNullOrEmpty(updateUserRequestDto.Password))
+            {
+                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updateUserRequestDto.Password);
+            }
+
+            // Actualizar en la base de datos
+            var updatedUser = await userRepository.UpdateAsync(id, existingUser);
+
+            return Ok(mapper.Map<UserDto>(updatedUser));
         }
 
         //DELETE USER

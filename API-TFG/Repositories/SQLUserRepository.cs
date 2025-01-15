@@ -14,7 +14,7 @@ namespace API_TFG.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<User> CreateAsync(User user)
+        public async Task<User?> CreateAsync(User user)
         {
             await dbContext.Users.AddAsync(user);
             await dbContext.SaveChangesAsync();
@@ -39,9 +39,19 @@ namespace API_TFG.Repositories
            return await dbContext.Users.ToListAsync();
         }
 
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
         public async Task<User?> GetByIdAsync(Guid id)
         {
             return await dbContext.Users.FindAsync(id);
+        }
+
+        public async Task<User?> GetByUsernameAsync(string username)
+        {
+            return await dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
 
         public async Task<User?> UpdateAsync(Guid id, User user)
@@ -53,10 +63,26 @@ namespace API_TFG.Repositories
                 return null;
             }
 
-            existingUser.Username = user.Username;
-            existingUser.PasswordHash = user.PasswordHash;
-            existingUser.Email = user.Email;
-            
+            if (!string.IsNullOrEmpty(user.Username))
+            {
+                existingUser.Username = user.Username;
+            }
+
+            if (!string.IsNullOrEmpty(user.Username))
+            {
+                existingUser.Username = user.Username;
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                existingUser.Email = user.Email;
+            }
+
+            if (!string.IsNullOrEmpty(user.PasswordHash))
+            {
+                existingUser.PasswordHash = user.PasswordHash;
+            }
+
             await dbContext.SaveChangesAsync();
             return existingUser;
         }
