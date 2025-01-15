@@ -1,4 +1,5 @@
-﻿using API_TFG.Data;
+﻿using API_TFG.CustomActionFilters;
+using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
 using API_TFG.Repositories;
@@ -49,51 +50,42 @@ namespace API_TFG.Controllers
 
         //CREATE NEW USER
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddUserRequestDto addUserRequestDto)
         {
-            if (ModelState.IsValid)
-            {
-                var user = mapper.Map<User>(addUserRequestDto);
+            var user = mapper.Map<User>(addUserRequestDto);
 
-                user = await userRepository.CreateAsync(user);
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addUserRequestDto.Password);
 
-                var userDto = mapper.Map<UserDto>(user);
+            user = await userRepository.CreateAsync(user);
 
-                return CreatedAtAction(nameof(GetById), new { id = userDto.UserID }, userDto);
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
+            var userDto = mapper.Map<UserDto>(user);
+
+            return CreatedAtAction(nameof(GetById), new { id = userDto.UserID }, userDto);
         }
 
         //UPDATE USER
         [HttpPut]
         [Route("{id:Guid}")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateUserRequestDto updateUserRequestDto)
         {
-            if (ModelState.IsValid)
+            var user = mapper.Map<User>(updateUserRequestDto);
+
+            user = await userRepository.UpdateAsync(id, user);
+
+            if (user == null)
             {
-                var user = mapper.Map<User>(updateUserRequestDto);
-
-                user = await userRepository.UpdateAsync(id, user);
-
-                if (user == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(mapper.Map<UserDto>(user));
-            }else
-            {
-                return BadRequest(ModelState);
+                return NotFound();
             }
+
+            return Ok(mapper.Map<UserDto>(user));
         }
 
         //DELETE USER
         [HttpDelete]
         [Route("{id:Guid}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id) 
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var user = await userRepository.DeleteAsync(id);
 

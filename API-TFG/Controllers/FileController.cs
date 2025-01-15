@@ -1,4 +1,5 @@
-﻿using API_TFG.Data;
+﻿using API_TFG.CustomActionFilters;
+using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
 using API_TFG.Repositories;
@@ -64,8 +65,8 @@ namespace API_TFG.Controllers
         public async Task<IActionResult> GetByUserId([FromRoute] Guid id)
         {
             var files = await fileRepository.GetAllByUserIdAsync(id);
-            
-            if(files == null)
+
+            if (files == null)
             {
                 return NotFound();
             }
@@ -79,27 +80,21 @@ namespace API_TFG.Controllers
         /// <param name="fileUploadDto"></param>
         /// <returns>File</returns>
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> UploadFile([FromForm] FileUploadDto fileUploadDto)
         {
-            if (ModelState.IsValid)
-            {
-                var file = mapper.Map<Models.Domain.File>(fileUploadDto);
+            var file = mapper.Map<Models.Domain.File>(fileUploadDto);
 
-                var savedFile = await fileRepository.UploadAsync(file, fileUploadDto.UploadedFile);
+            var savedFile = await fileRepository.UploadAsync(file, fileUploadDto.UploadedFile);
 
-                //AuditLog
-                var auditLog = mapper.Map<AuditLog>(savedFile);
-                
-                auditLog.Action = Models.Enum.ActionType.Upload;
-                
-                await auditLogRepository.CreateAuditLogAsync(auditLog);
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(savedFile);
 
-                return Ok(mapper.Map<FileDto>(savedFile));
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
+            auditLog.Action = Models.Enum.ActionType.Upload;
+
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
+
+            return Ok(mapper.Map<FileDto>(savedFile));
         }
 
         /// <summary>
@@ -110,32 +105,26 @@ namespace API_TFG.Controllers
         /// <returns>The updated File</returns>
         [HttpPut]
         [Route("{id:Guid}")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateFileRequestDto updateFileRequestDto)
         {
-            if (ModelState.IsValid)
+            var updatedFile = mapper.Map<Models.Domain.File>(updateFileRequestDto);
+
+            var file = await fileRepository.UpdateAsync(id, updatedFile);
+
+            if (file == null)
             {
-                var updatedFile = mapper.Map<Models.Domain.File>(updateFileRequestDto);
-
-                var file = await fileRepository.UpdateAsync(id, updatedFile);
-
-                if (file == null)
-                {
-                    return NotFound();
-                }
-
-                //AuditLog
-                var auditLog = mapper.Map<AuditLog>(file);
-
-                auditLog.Action = Models.Enum.ActionType.Update;
-
-                await auditLogRepository.CreateAuditLogAsync(auditLog);
-
-                return Ok(mapper.Map<FileDto>(file));
+                return NotFound();
             }
-            else
-            {
-                return BadRequest(ModelState);
-            }
+
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(file);
+
+            auditLog.Action = Models.Enum.ActionType.Update;
+
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
+
+            return Ok(mapper.Map<FileDto>(file));
         }
 
         /// <summary>
@@ -186,7 +175,7 @@ namespace API_TFG.Controllers
         {
             var file = await fileRepository.SoftDelete(id);
 
-            if(file == null)
+            if (file == null)
             {
                 return NotFound();
             }

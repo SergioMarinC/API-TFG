@@ -1,4 +1,5 @@
-﻿using API_TFG.Data;
+﻿using API_TFG.CustomActionFilters;
+using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
 using API_TFG.Models.Enum;
@@ -88,25 +89,19 @@ namespace API_TFG.Controllers
         /// <param name="addUserFileDto"></param>
         /// <returns>The sharedFile</returns>
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> ShareFile([FromForm] ShareFileDto addUserFileDto)
         {
-            if (ModelState.IsValid)
-            {
-                var userFile = mapper.Map<UserFile>(addUserFileDto);
+            var userFile = mapper.Map<UserFile>(addUserFileDto);
+            
+            var createdUserFile = await userFileRepository.CreateAsync(userFile);
 
-                var createdUserFile = await userFileRepository.CreateAsync(userFile);
+            //AuditLog
+            var auditLog = mapper.Map<AuditLog>(userFile);
+            auditLog.Action = ActionType.Share;
+            await auditLogRepository.CreateAuditLogAsync(auditLog);
 
-                //AuditLog
-                var auditLog = mapper.Map<AuditLog>(userFile);
-                auditLog.Action = ActionType.Share;
-                await auditLogRepository.CreateAuditLogAsync(auditLog);
-
-                return Ok(mapper.Map<ShareFileDto>(createdUserFile));
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
+            return Ok(mapper.Map<ShareFileDto>(createdUserFile));
         }
 
         /// <summary>
@@ -117,13 +112,9 @@ namespace API_TFG.Controllers
         /// <returns>The updated shared file</returns>
         [HttpPut]
         [Route("{userFileId}/permissions")]
+        [ValidateModel]
         public async Task<IActionResult> UpdateFilePermissions(int userFileId, [FromBody] UpdateUserFileRequestDto updateUserFileDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var updatedUserFile = await userFileRepository.UpdatePermissionsAsync(userFileId, updateUserFileDto.PermissionType);
 
             if (updatedUserFile == null)
