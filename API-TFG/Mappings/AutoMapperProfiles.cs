@@ -16,7 +16,8 @@ namespace API_TFG.Mappings
             CreateMap<UpdateUserRequestDto, User>().ReverseMap();
 
             // Map File
-            CreateMap<File, FileDto>().ReverseMap();
+            CreateMap<File, FileDto>()
+                .ForMember(dest => dest.OwnerID, opt => opt.MapFrom(src => src.Owner.UserID));
             CreateMap<FileUploadDto, File>()
                 .ForMember(dest => dest.FileID, opt => opt.MapFrom(src => Guid.NewGuid())) // Generar ID único
                 .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.UploadedFile.FileName)) // Nombre del archivo
@@ -50,6 +51,7 @@ namespace API_TFG.Mappings
             //Map AuditLog
             CreateMap<File, AuditLog>()
                 .ForMember(dest => dest.Action, opt => opt.Ignore())
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Owner.Username))
                 .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(_ => DateTime.UtcNow));
             CreateMap<UserFile, AuditLog>()
             .ForMember(dest => dest.UserID, opt => opt.MapFrom(src => src.User.UserID))

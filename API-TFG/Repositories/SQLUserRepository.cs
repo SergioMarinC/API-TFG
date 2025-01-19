@@ -34,9 +34,24 @@ namespace API_TFG.Repositories
             return existingUser;
         }
 
-        public async Task<List<User>> GetAllAsync()
+        public async Task<List<User>> GetAllAsync(string? filterOn = null, string? filterQuery = null)
         {
-           return await dbContext.Users.ToListAsync();
+            var users = dbContext.Users.AsQueryable();
+
+            //Filtering
+            if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
+            {
+                if (filterOn.Equals("Username", StringComparison.OrdinalIgnoreCase))
+                {
+                    users = users.Where(x => x.Username.Contains(filterQuery));
+                }
+                if (filterOn.Equals("email", StringComparison.OrdinalIgnoreCase))
+                {
+                    users = users.Where(x => x.Email.Contains(filterQuery));
+                }
+            }
+
+            return await users.ToListAsync();
         }
 
         public async Task<User?> GetByEmailAsync(string email)

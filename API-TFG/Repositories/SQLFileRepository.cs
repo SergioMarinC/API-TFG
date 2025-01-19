@@ -3,6 +3,7 @@ using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API_TFG.Repositories
@@ -15,24 +16,40 @@ namespace API_TFG.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<List<Models.Domain.File>> GetAllAsync()
+        public async Task<List<Models.Domain.File>> GetAllAsync([FromQuery] string? filterOn = null, string? filterQuery = null)
         {
-            return await dbContext.Files.ToListAsync();
+            var files = dbContext.Files.AsQueryable();
+
+            //Filtering
+            if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
+            {
+                if (filterOn.Equals("filename", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = files.Where(x => x.FileName.Contains(filterQuery));
+                }
+            }
+            return await files.Include(f => f.Owner).ToListAsync();
         }
 
         public async Task<Models.Domain.File?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Files.FindAsync(id);
+            return await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
         }
 
-        public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id)
+        public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id, string? filterOn = null, string? filterQuery = null)
         {
-            if (!await dbContext.Files.AnyAsync(f => f.Owner.UserID == id))
+            var files = dbContext.Files.AsQueryable();
+
+            //Filtering
+            if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
             {
-                return null;
+                if (filterOn.Equals("filename", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = files.Where(x => x.FileName.Contains(filterQuery));
+                }
             }
 
-            return await dbContext.Files.Where(f => f.Owner.UserID == id && !f.IsDeleted).ToListAsync();
+            return await files.Where(f => f.Owner.UserID == id && !f.IsDeleted).Include(f => f.Owner).ToListAsync();
         }
 
         public Task<Models.Domain.File> ShareAsync(Guid id)
@@ -43,11 +60,16 @@ namespace API_TFG.Repositories
         public async Task<Models.Domain.File?> UpdateAsync(Guid id, Models.Domain.File file)
         {
             // Buscar el archivo existente en la base de datos
-            var existingFile = await dbContext.Files.FindAsync(id);
+            var existingFile = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
             if (existingFile == null)
             {
                 return null; // Archivo no encontrado
             }
+
+            // Mantener la extensión original del archivo
+            var originalExtension = Path.GetExtension(existingFile.FileName);
+            var newFileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+            var newFileName = $"{newFileNameWithoutExtension}{originalExtension}";
 
             // Obtener la ruta base para "uploads" (dentro del directorio del proyecto)
             var baseUploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
@@ -57,7 +79,7 @@ namespace API_TFG.Repositories
             var oldFilePath = Path.Combine(userRootFolder, existingFile.FilePath ?? string.Empty, existingFile.FileName);
 
             // Nueva ruta: carpeta del usuario + nueva subcarpeta (si se proporciona) + nuevo nombre de archivo
-            var newFilePath = Path.Combine(userRootFolder, file.FilePath ?? string.Empty, file.FileName);
+            var newFilePath = Path.Combine(userRootFolder, file.FilePath ?? string.Empty, newFileName);
 
             // Si la ruta ha cambiado, mover el archivo
             if (!string.Equals(oldFilePath, newFilePath, StringComparison.OrdinalIgnoreCase))
@@ -81,7 +103,7 @@ namespace API_TFG.Repositories
             }
 
             // Actualizar los datos del archivo en la base de datos
-            existingFile.FileName = file.FileName;
+            existingFile.FileName = newFileName;
             existingFile.FilePath = file.FilePath ?? string.Empty;
 
             // Guardar cambios
@@ -92,9 +114,10 @@ namespace API_TFG.Repositories
         }
 
 
+
         public async Task<Models.Domain.File?> SoftDelete(Guid id)
         {
-            var existingFile = await dbContext.Files.FindAsync(id);
+            var existingFile = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
 
             if (existingFile == null)
             {
@@ -109,7 +132,7 @@ namespace API_TFG.Repositories
 
         public async Task<Models.Domain.File?> HardDelete(Guid id)
         {
-            var existingFile = await dbContext.Files.FindAsync(id);
+            var existingFile = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
 
             if(existingFile == null)
             {
@@ -168,7 +191,7 @@ namespace API_TFG.Repositories
         public async Task<(Models.Domain.File? file, byte[]? fileContent)> DownloadAsync(Guid id)
         {
             // Buscar el archivo en la base de datos
-            var file = await dbContext.Files.FindAsync(id);
+            var file = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
 
             if (file == null)
             {
@@ -205,7 +228,7 @@ namespace API_TFG.Repositories
 
         public async Task<Models.Domain.File?> Restore(Guid id)
         {
-            var existingFile = await dbContext.Files.FindAsync(id);
+            var existingFile = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
 
             if (existingFile == null)
             {

@@ -15,13 +15,15 @@ namespace API_TFG.Controllers
     {
         private readonly IFileRepository fileRepository;
         private readonly IAuditLogRepository auditLogRepository;
+        private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
 
-        public FileController(IFileRepository fileRepository, IAuditLogRepository auditLogRepository, IMapper mapper)
+        public FileController(IFileRepository fileRepository, IAuditLogRepository auditLogRepository, IMapper mapper, IUserRepository userRepository)
         {
             this.fileRepository = fileRepository;
             this.auditLogRepository = auditLogRepository;
             this.mapper = mapper;
+            this.userRepository = userRepository;
         }
 
         /// <summary>
@@ -84,6 +86,13 @@ namespace API_TFG.Controllers
         public async Task<IActionResult> UploadFile([FromForm] FileUploadDto fileUploadDto)
         {
             var file = mapper.Map<Models.Domain.File>(fileUploadDto);
+            var owner = await userRepository.GetByIdAsync(fileUploadDto.OwnerID);
+            if (owner == null) 
+            {
+                return NotFound("The user doesn't exist.");
+            }
+
+            file.Owner = owner;
 
             var savedFile = await fileRepository.UploadAsync(file, fileUploadDto.UploadedFile);
 

@@ -5,7 +5,7 @@ namespace API_TFG.Repositories
 {
     public interface IUserRepository
     {
-        Task<List<User>> GetAllAsync();
+        Task<List<User>> GetAllAsync(string? filterOn = null, string? filterQuery = null);
         Task<User?> GetByIdAsync(Guid id);
         Task<User?> CreateAsync(User user);
         Task<User?> UpdateAsync(Guid id, User user);

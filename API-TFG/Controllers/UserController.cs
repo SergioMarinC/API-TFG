@@ -12,12 +12,12 @@ namespace API_TFG.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
 
-        public UsersController(IUserRepository userRepository, IMapper mapper)
+        public UserController(IUserRepository userRepository, IMapper mapper)
         {
             this.userRepository = userRepository;
             this.mapper = mapper;
@@ -25,9 +25,9 @@ namespace API_TFG.Controllers
 
         //GET ALL USERS
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery)
         {
-            var users = await userRepository.GetAllAsync();
+            var users = await userRepository.GetAllAsync(filterOn, filterQuery);
 
             return Ok(mapper.Map<List<UserDto>>(users));
         }
