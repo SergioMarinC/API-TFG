@@ -22,6 +22,8 @@ builder.Services.AddScoped<IAuditLogRepository, SQLAuditLogRepository>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
+builder.Services.AddAuthentication(JwtBearerDefaults);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
