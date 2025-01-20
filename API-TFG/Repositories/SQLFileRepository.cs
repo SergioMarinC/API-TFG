@@ -5,6 +5,7 @@ using API_TFG.Models.DTO;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace API_TFG.Repositories
 {
@@ -16,7 +17,7 @@ namespace API_TFG.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<List<Models.Domain.File>> GetAllAsync([FromQuery] string? filterOn = null, string? filterQuery = null)
+        public async Task<List<Models.Domain.File>> GetAllAsync([FromQuery] string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
         {
             var files = dbContext.Files.AsQueryable();
 
@@ -28,7 +29,28 @@ namespace API_TFG.Repositories
                     files = files.Where(x => x.FileName.Contains(filterQuery));
                 }
             }
-            return await files.Include(f => f.Owner).ToListAsync();
+
+            //Sorting
+            if (string.IsNullOrWhiteSpace(sortBy) == false)
+            {
+                if (sortBy.Equals("filename", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = isAscending ? files.OrderBy(x  => x.FileName): files.OrderByDescending(x => x.FileName);
+                }
+                else if (sortBy.Equals("FileSize", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = isAscending ? files.OrderBy(x => x.FileSize) : files.OrderByDescending(x => x.FileSize);
+                }
+                else if (sortBy.Equals("CreatedDate", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = isAscending ? files.OrderBy(x => x.CreatedDate) : files.OrderByDescending(x => x.CreatedDate);
+                }
+            }
+
+            //Pagination
+            var skipResults = (pageNumber - 1) * pageSize;
+
+            return await files.Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
         }
 
         public async Task<Models.Domain.File?> GetByIdAsync(Guid id)
@@ -36,8 +58,13 @@ namespace API_TFG.Repositories
             return await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
         }
 
-        public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id, string? filterOn = null, string? filterQuery = null)
+        public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id, string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
         {
+            if(!await dbContext.Files.AnyAsync(x => x.Owner.UserID == id))
+            {
+                return null;
+            }
+
             var files = dbContext.Files.AsQueryable();
 
             //Filtering
@@ -49,7 +76,27 @@ namespace API_TFG.Repositories
                 }
             }
 
-            return await files.Where(f => f.Owner.UserID == id && !f.IsDeleted).Include(f => f.Owner).ToListAsync();
+            //Sorting
+            if (string.IsNullOrWhiteSpace(sortBy) == false)
+            {
+                if (sortBy.Equals("filename", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = isAscending ? files.OrderBy(x => x.FileName) : files.OrderByDescending(x => x.FileName);
+                }
+                else if (sortBy.Equals("FileSize", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = isAscending ? files.OrderBy(x => x.FileSize) : files.OrderByDescending(x => x.FileSize);
+                }
+                else if (sortBy.Equals("CreatedDate", StringComparison.OrdinalIgnoreCase))
+                {
+                    files = isAscending ? files.OrderBy(x => x.CreatedDate) : files.OrderByDescending(x => x.CreatedDate);
+                }
+            }
+
+            //Pagination
+            var skipResults = (pageNumber - 1) * pageSize;
+
+            return await files.Where(f => f.Owner.UserID == id && !f.IsDeleted).Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
         }
 
         public Task<Models.Domain.File> ShareAsync(Guid id)

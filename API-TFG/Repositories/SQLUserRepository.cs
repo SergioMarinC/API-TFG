@@ -2,6 +2,7 @@
 using API_TFG.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using System.Globalization;
 
 namespace API_TFG.Repositories
 {
@@ -34,7 +35,7 @@ namespace API_TFG.Repositories
             return existingUser;
         }
 
-        public async Task<List<User>> GetAllAsync(string? filterOn = null, string? filterQuery = null)
+        public async Task<List<User>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
         {
             var users = dbContext.Users.AsQueryable();
 
@@ -51,7 +52,23 @@ namespace API_TFG.Repositories
                 }
             }
 
-            return await users.ToListAsync();
+            //Sorting
+            if (string.IsNullOrWhiteSpace(sortBy) == false)
+            {
+                if (sortBy.Equals("username", StringComparison.OrdinalIgnoreCase))
+                {
+                    users = isAscending ? users.OrderBy(x => x.Username) : users.OrderByDescending(x => x.Username);
+                }
+                else if (sortBy.Equals("email", StringComparison.OrdinalIgnoreCase))
+                {
+                    users = isAscending ? users.OrderBy(x => x.Email) : users.OrderByDescending(x => x.Email);
+                }
+            }
+
+            //Pagination
+            var skipResults = (pageNumber - 1) * pageSize;
+
+            return await users.Skip(skipResults).Take(pageSize).ToListAsync();
         }
 
         public async Task<User?> GetByEmailAsync(string email)

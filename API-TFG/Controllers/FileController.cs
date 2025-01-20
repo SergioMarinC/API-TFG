@@ -31,9 +31,9 @@ namespace API_TFG.Controllers
         /// </summary>
         /// <returns>List of Files</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
-            var files = await fileRepository.GetAllAsync();
+            var files = await fileRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
 
             return Ok(mapper.Map<List<FileDto>>(files));
         }
@@ -64,13 +64,13 @@ namespace API_TFG.Controllers
         /// <returns>List of Files</returns>
         [HttpGet]
         [Route("user/{id:Guid}")]
-        public async Task<IActionResult> GetByUserId([FromRoute] Guid id)
+        public async Task<IActionResult> GetByUserId([FromRoute] Guid id, [FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
-            var files = await fileRepository.GetAllByUserIdAsync(id);
+            var files = await fileRepository.GetAllByUserIdAsync(id, filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
 
             if (files == null)
             {
-                return NotFound();
+                return NotFound("User not found");
             }
 
             return Ok(mapper.Map<List<FileDto>>(files));
