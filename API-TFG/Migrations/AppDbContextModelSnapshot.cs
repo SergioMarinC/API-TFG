@@ -201,41 +201,6 @@ namespace API_TFG.Migrations
                     b.ToTable("UserFiles");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("IdentityRole");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "d579c31f-478f-4027-a5d9-141bba4bf886",
-                            ConcurrencyStamp = "d579c31f-478f-4027-a5d9-141bba4bf886",
-                            Name = "User",
-                            NormalizedName = "USER"
-                        },
-                        new
-                        {
-                            Id = "a382f791-7544-4920-ad30-138446a0816d",
-                            ConcurrencyStamp = "a382f791-7544-4920-ad30-138446a0816d",
-                            Name = "Administrator",
-                            NormalizedName = "ADMINISTRATOR"
-                        });
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("Id")
@@ -262,6 +227,22 @@ namespace API_TFG.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("d579c31f-478f-4027-a5d9-141bba4bf886"),
+                            ConcurrencyStamp = "d579c31f-478f-4027-a5d9-141bba4bf886",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        },
+                        new
+                        {
+                            Id = new Guid("a382f791-7544-4920-ad30-138446a0816d"),
+                            ConcurrencyStamp = "a382f791-7544-4920-ad30-138446a0816d",
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

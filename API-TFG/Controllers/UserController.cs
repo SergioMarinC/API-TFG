@@ -5,6 +5,7 @@ using API_TFG.Models.DTO;
 using API_TFG.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,11 +17,13 @@ namespace API_TFG.Controllers
     {
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
+        private readonly UserManager<User> userManager;
 
-        public UserController(IUserRepository userRepository, IMapper mapper)
+        public UserController(IUserRepository userRepository, IMapper mapper, UserManager<User> userManager)
         {
             this.userRepository = userRepository;
             this.mapper = mapper;
+            this.userManager = userManager;
         }
 
         //GET ALL USERS
@@ -48,29 +51,57 @@ namespace API_TFG.Controllers
             return Ok(mapper.Map<UserDto>(user));
         }
 
-        //CREATE NEW USER
+        ////CREATE NEW USER
+        //[HttpPost]
+        //[ValidateModel]
+        //public async Task<IActionResult> Create([FromBody] AddUserRequestDto addUserRequestDto)
+        //{
+        //    if (await userRepository.GetByUsernameAsync(addUserRequestDto.Username) != null)
+        //    {
+        //        return Conflict("The Username already exists in the database");
+        //    }
+        //    if (await userRepository.GetByEmailAsync(addUserRequestDto.Email) != null)
+        //    {
+        //        return Conflict("The Email already exists in the database");
+        //    }
+        //    var user = mapper.Map<User>(addUserRequestDto);
+
+        //    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addUserRequestDto.Password);
+
+        //    user = await userRepository.CreateAsync(user);
+
+        //    var userDto = mapper.Map<UserDto>(user);
+
+        //    return CreatedAtAction(nameof(GetById), new { id = userDto.UserID }, userDto);
+        //}
+
         [HttpPost]
         [Route("Register")]
-        [ValidateModel]
-        public async Task<IActionResult> Create([FromBody] AddUserRequestDto addUserRequestDto)
+        public async Task<IActionResult> Register([FromBody] AddUserRequestDto requestDto)
         {
-            if (await userRepository.GetByUsernameAsync(addUserRequestDto.Username) != null)
+            var identityUser = new User
             {
-                return Conflict("The Username already exists in the database");
-            }
-            if (await userRepository.GetByEmailAsync(addUserRequestDto.Email) != null)
+                UserName = requestDto.Username,
+                Email = requestDto.Username,
+            };
+
+            var identityResult = await userManager.CreateAsync(identityUser, requestDto.Password);
+
+            if (identityResult.Succeeded)
             {
-                return Conflict("The Email already exists in the database");
+                //Add roles to this User
+                if (requestDto.Roles != null && requestDto.Roles.Any())
+                {
+                    identityResult = await userManager.AddToRolesAsync(identityUser, requestDto.Roles);
+
+                    if (identityResult.Succeeded)
+                    {
+                        return Ok("User was registered");
+                    }
+                }
+
             }
-            var user = mapper.Map<User>(addUserRequestDto);
-
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addUserRequestDto.Password);
-
-            user = await userRepository.CreateAsync(user);
-
-            var userDto = mapper.Map<UserDto>(user);
-
-            return CreatedAtAction(nameof(GetById), new { id = userDto.UserID }, userDto);
+            return BadRequest("Something went wrong");
         }
 
         //UPDATE USER

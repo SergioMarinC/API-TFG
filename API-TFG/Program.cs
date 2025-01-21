@@ -28,7 +28,7 @@ builder.Services.AddScoped<IAuditLogRepository, SQLAuditLogRepository>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 builder.Services.AddIdentityCore<User>()
-    .AddRoles<IdentityRole>()
+    .AddRoles<IdentityRole<Guid>>()
     .AddTokenProvider<DataProtectorTokenProvider<User>>("APITFG")
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();

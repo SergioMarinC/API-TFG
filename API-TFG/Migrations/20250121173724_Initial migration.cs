@@ -73,20 +73,6 @@ namespace API_TFG.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "IdentityRole",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_IdentityRole", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -244,12 +230,12 @@ namespace API_TFG.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "IdentityRole",
+                table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "a382f791-7544-4920-ad30-138446a0816d", "a382f791-7544-4920-ad30-138446a0816d", "Administrator", "ADMINISTRATOR" },
-                    { "d579c31f-478f-4027-a5d9-141bba4bf886", "d579c31f-478f-4027-a5d9-141bba4bf886", "User", "USER" }
+                    { new Guid("a382f791-7544-4920-ad30-138446a0816d"), "a382f791-7544-4920-ad30-138446a0816d", "Administrator", "ADMINISTRATOR" },
+                    { new Guid("d579c31f-478f-4027-a5d9-141bba4bf886"), "d579c31f-478f-4027-a5d9-141bba4bf886", "User", "USER" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -341,9 +327,6 @@ namespace API_TFG.Migrations
 
             migrationBuilder.DropTable(
                 name: "AuditLogs");
-
-            migrationBuilder.DropTable(
-                name: "IdentityRole");
 
             migrationBuilder.DropTable(
                 name: "UserFiles");

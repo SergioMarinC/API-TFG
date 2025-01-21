@@ -53,28 +53,26 @@ namespace API_TFG.Data
 
             base.OnModelCreating(modelBuilder);
 
-            var userRoleID = "d579c31f-478f-4027-a5d9-141bba4bf886";
-            var adminRoleId = "a382f791-7544-4920-ad30-138446a0816d";
-
-            var roles = new List<IdentityRole>
+            var roles = new List<IdentityRole<Guid>>
             {
-                new IdentityRole
+                new IdentityRole<Guid>
                 {
-                    Id = userRoleID,
-                    ConcurrencyStamp = userRoleID,
+                    Id = Guid.Parse("d579c31f-478f-4027-a5d9-141bba4bf886"),
+                    ConcurrencyStamp = "d579c31f-478f-4027-a5d9-141bba4bf886",
                     Name = "User",
-                    NormalizedName = "User".ToUpper()
+                    NormalizedName = "USER"
                 },
-                new IdentityRole
+                new IdentityRole<Guid>
                 {
-                    Id = adminRoleId,
-                    ConcurrencyStamp= adminRoleId,
+                    Id = Guid.Parse("a382f791-7544-4920-ad30-138446a0816d"),
+                    ConcurrencyStamp = "a382f791-7544-4920-ad30-138446a0816d",
                     Name = "Administrator",
-                    NormalizedName = "Administrator".ToUpper()
+                    NormalizedName = "ADMINISTRATOR"
                 }
             };
 
-            modelBuilder.Entity<IdentityRole>().HasData(roles);
+            modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
+
         }
     }
 }
