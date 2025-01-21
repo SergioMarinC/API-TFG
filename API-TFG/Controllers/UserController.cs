@@ -50,6 +50,7 @@ namespace API_TFG.Controllers
 
         //CREATE NEW USER
         [HttpPost]
+        [Route("Register")]
         [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddUserRequestDto addUserRequestDto)
         {
@@ -88,7 +89,7 @@ namespace API_TFG.Controllers
             // Mapear solo los campos no nulos del DTO al modelo existente
             if (!string.IsNullOrEmpty(updateUserRequestDto.Username))
             {
-                existingUser.Username = updateUserRequestDto.Username;
+                existingUser.UserName = updateUserRequestDto.Username;
             }
 
             if (!string.IsNullOrEmpty(updateUserRequestDto.Email))

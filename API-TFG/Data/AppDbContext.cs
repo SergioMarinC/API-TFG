@@ -1,17 +1,21 @@
-﻿    using API_TFG.Models.Domain;
+﻿using API_TFG.Models.Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using File = API_TFG.Models.Domain.File;
 
 namespace API_TFG.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
-        public AppDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions) {}
+        public AppDbContext(DbContextOptions<AppDbContext> dbContextOptions) : base(dbContextOptions)
+        {
 
-        public DbSet<User> Users { get; set; } = null!;
-        public DbSet<File> Files { get; set; } = null!;
-        public DbSet<UserFile> UserFiles { get; set; } = null!;
-        public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+        }
+
+        public DbSet<File> Files { get; set; }
+        public DbSet<UserFile> UserFiles { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -19,7 +23,7 @@ namespace API_TFG.Data
             modelBuilder.Entity<File>()
                 .HasOne(f => f.Owner)
                 .WithMany(u => u.Files)
-                .OnDelete(DeleteBehavior.Cascade); // Archivos eliminados al eliminar usuario
+                .OnDelete(DeleteBehavior.Restrict); // Archivos eliminados al eliminar usuario
 
             // Configuración de UserFile
             modelBuilder.Entity<UserFile>()
@@ -37,16 +41,40 @@ namespace API_TFG.Data
                 .Property(al => al.Action)
                 .HasConversion<string>(); // Almacena ActionType como texto legible
 
-            // Índices únicos en User
+            // Configuración única para Email
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
+            // Configuración única para Username
             modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
+                .HasIndex(u => u.UserName)
                 .IsUnique();
 
             base.OnModelCreating(modelBuilder);
+
+            var userRoleID = "d579c31f-478f-4027-a5d9-141bba4bf886";
+            var adminRoleId = "a382f791-7544-4920-ad30-138446a0816d";
+
+            var roles = new List<IdentityRole>
+            {
+                new IdentityRole
+                {
+                    Id = userRoleID,
+                    ConcurrencyStamp = userRoleID,
+                    Name = "User",
+                    NormalizedName = "User".ToUpper()
+                },
+                new IdentityRole
+                {
+                    Id = adminRoleId,
+                    ConcurrencyStamp= adminRoleId,
+                    Name = "Administrator",
+                    NormalizedName = "Administrator".ToUpper()
+                }
+            };
+
+            modelBuilder.Entity<IdentityRole>().HasData(roles);
         }
     }
 }

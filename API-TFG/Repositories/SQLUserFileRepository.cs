@@ -24,7 +24,7 @@ namespace API_TFG.Repositories
         public async Task<List<UserFile>> GetFilesSharedWithUserAsync(Guid userId)
         {
             return await dbContext.UserFiles.Include(uf => uf.File)
-                .Where(uf => uf.User.UserID == userId)
+                .Where(uf => uf.User.Id == userId)
                 .ToListAsync();
         }
 
@@ -33,7 +33,7 @@ namespace API_TFG.Repositories
             return await dbContext.UserFiles
                 .Include(uf => uf.File)
                 .Include(uf => uf.User)
-                .FirstOrDefaultAsync(uf => uf.User.UserID == userId && uf.File.FileID == fileId && !uf.File.IsDeleted);
+                .FirstOrDefaultAsync(uf => uf.User.Id == userId && uf.File.FileID == fileId && !uf.File.IsDeleted);
         }
 
         public async Task<List<UserFile>> GetUserWithAccesToFileAsync(Guid fileId)

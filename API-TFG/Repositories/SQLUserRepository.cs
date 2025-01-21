@@ -42,9 +42,9 @@ namespace API_TFG.Repositories
             //Filtering
             if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
             {
-                if (filterOn.Equals("Username", StringComparison.OrdinalIgnoreCase))
+                if (filterOn.Equals("UserName", StringComparison.OrdinalIgnoreCase))
                 {
-                    users = users.Where(x => x.Username.Contains(filterQuery));
+                    users = users.Where(x => x.UserName.Contains(filterQuery));
                 }
                 if (filterOn.Equals("email", StringComparison.OrdinalIgnoreCase))
                 {
@@ -57,7 +57,7 @@ namespace API_TFG.Repositories
             {
                 if (sortBy.Equals("username", StringComparison.OrdinalIgnoreCase))
                 {
-                    users = isAscending ? users.OrderBy(x => x.Username) : users.OrderByDescending(x => x.Username);
+                    users = isAscending ? users.OrderBy(x => x.UserName) : users.OrderByDescending(x => x.UserName);
                 }
                 else if (sortBy.Equals("email", StringComparison.OrdinalIgnoreCase))
                 {
@@ -83,7 +83,7 @@ namespace API_TFG.Repositories
 
         public async Task<User?> GetByUsernameAsync(string username)
         {
-            return await dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return await dbContext.Users.FirstOrDefaultAsync(u => u.UserName == username);
         }
 
         public async Task<User?> UpdateAsync(Guid id, User user)
@@ -95,14 +95,14 @@ namespace API_TFG.Repositories
                 return null;
             }
 
-            if (!string.IsNullOrEmpty(user.Username))
+            if (!string.IsNullOrEmpty(user.UserName))
             {
-                existingUser.Username = user.Username;
+                existingUser.UserName = user.UserName;
             }
 
-            if (!string.IsNullOrEmpty(user.Username))
+            if (!string.IsNullOrEmpty(user.UserName))
             {
-                existingUser.Username = user.Username;
+                existingUser.UserName = user.UserName;
             }
 
             if (!string.IsNullOrEmpty(user.Email))
