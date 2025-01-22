@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API_TFG.Models.DTO
 {
-    public class AddUserRequestDto
+    public class RegisterRequestDto
     {
         [Required]
         [EmailAddress]

@@ -13,7 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
@@ -27,5 +26,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="Models\DTO\FileDto\" />
+    <Folder Include="Models\DTO\UserFileDto\" />
+    <Folder Include="Models\DTO\UserDto\" />
+    <Folder Include="Repositories\FileRepositories\" />
+    <Folder Include="Repositories\AuditLogRepositories\" />
+    <Folder Include="Repositories\TokenRepositories\" />
+    <Folder Include="Repositories\UserFileRepositories\" />
+    <Folder Include="Repositories\UserRepositories\" />
   </ItemGroup>
 </Project>

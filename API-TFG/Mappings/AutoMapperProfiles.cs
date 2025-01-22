@@ -12,7 +12,7 @@ namespace API_TFG.Mappings
         {
             // Map User
             CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<AddUserRequestDto, User>().ReverseMap();
+            CreateMap<RegisterRequestDto, User>().ReverseMap();
             CreateMap<UpdateUserRequestDto, User>().ReverseMap();
 
             // Map File

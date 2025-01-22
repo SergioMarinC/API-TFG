@@ -5,6 +5,7 @@ using API_TFG.Models.DTO;
 using API_TFG.Models.Enum;
 using API_TFG.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,7 @@ namespace API_TFG.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserFileController : ControllerBase
     {
         private readonly IUserFileRepository userFileRepository;

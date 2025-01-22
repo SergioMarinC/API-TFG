@@ -18,12 +18,14 @@ namespace API_TFG.Controllers
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
         private readonly UserManager<User> userManager;
+        private readonly ITokenRepository tokenRepository;
 
-        public UserController(IUserRepository userRepository, IMapper mapper, UserManager<User> userManager)
+        public UserController(IUserRepository userRepository, IMapper mapper, UserManager<User> userManager, ITokenRepository tokenRepository)
         {
             this.userRepository = userRepository;
             this.mapper = mapper;
             this.userManager = userManager;
+            this.tokenRepository = tokenRepository;
         }
 
         //GET ALL USERS
@@ -77,22 +79,22 @@ namespace API_TFG.Controllers
 
         [HttpPost]
         [Route("Register")]
-        public async Task<IActionResult> Register([FromBody] AddUserRequestDto requestDto)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
             var identityUser = new User
             {
-                UserName = requestDto.Username,
-                Email = requestDto.Username,
+                UserName = registerRequestDto.Username,
+                Email = registerRequestDto.Username,
             };
 
-            var identityResult = await userManager.CreateAsync(identityUser, requestDto.Password);
+            var identityResult = await userManager.CreateAsync(identityUser, registerRequestDto.Password);
 
             if (identityResult.Succeeded)
             {
                 //Add roles to this User
-                if (requestDto.Roles != null && requestDto.Roles.Any())
+                if (registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
                 {
-                    identityResult = await userManager.AddToRolesAsync(identityUser, requestDto.Roles);
+                    identityResult = await userManager.AddToRolesAsync(identityUser, registerRequestDto.Roles);
 
                     if (identityResult.Succeeded)
                     {
@@ -102,6 +104,39 @@ namespace API_TFG.Controllers
 
             }
             return BadRequest("Something went wrong");
+        }
+
+        [HttpPost]
+        [Route("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
+        {
+            var user = await userManager.FindByEmailAsync(loginRequestDto.Username);
+
+            if (user != null)
+            {
+                var checkPasswordResult = await userManager.CheckPasswordAsync(user, loginRequestDto.Password);
+
+                if (checkPasswordResult)
+                {
+                    //Get Roles for this user
+                    var roles = await userManager.GetRolesAsync(user);
+
+                    if (roles != null)
+                    {
+                        //Create Token
+
+                        var jwtToken = tokenRepository.CreateJWTToken(user, roles.ToList());
+
+                        var response = new LoginResponseDto
+                        {
+                            JwtToken = jwtToken
+                        };
+
+                        return Ok(response);
+                    }
+                }
+            }
+            return BadRequest("Username or password incorrect");
         }
 
         //UPDATE USER
