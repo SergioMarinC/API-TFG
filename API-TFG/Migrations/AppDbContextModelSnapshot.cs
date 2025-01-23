@@ -60,7 +60,7 @@ namespace API_TFG.Migrations
 
                     b.HasKey("AuditLogID");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("API_TFG.Models.Domain.File", b =>
@@ -94,7 +94,7 @@ namespace API_TFG.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("API_TFG.Models.Domain.User", b =>
@@ -198,7 +198,7 @@ namespace API_TFG.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFiles");
+                    b.ToTable("UserFiles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -370,7 +370,7 @@ namespace API_TFG.Migrations
                     b.HasOne("API_TFG.Models.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("File");

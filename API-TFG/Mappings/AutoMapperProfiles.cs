@@ -1,5 +1,6 @@
 ﻿using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
+using API_TFG.Models.DTO.UserDtos;
 using API_TFG.Repositories;
 using AutoMapper;
 using File = API_TFG.Models.Domain.File;
@@ -11,9 +12,25 @@ namespace API_TFG.Mappings
         public AutoMapperProfiles()
         {
             // Map User
-            CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<RegisterRequestDto, User>().ReverseMap();
-            CreateMap<UpdateUserRequestDto, User>().ReverseMap();
+            CreateMap<User, UserDto>()
+                .ForMember(dest => dest.UserID, opt => opt.MapFrom(src => src.Id))
+                .ReverseMap();
+            CreateMap<RegisterRequestDto, User>()
+                .ForMember(dest => dest.Files, opt => opt.Ignore())
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email))
+                .ReverseMap();
+
+            CreateMap<LoginRequestDto, User>()
+                .ForMember(dest => dest.Files, opt => opt.Ignore())
+                .ReverseMap();
+
+            CreateMap<UpdateUserRequestDto, User>()
+                .ForMember(dest => dest.UserName, opt => opt.Condition(src => !string.IsNullOrEmpty(src.Username)))
+                .ForMember(dest => dest.Email, opt => opt.Condition(src => !string.IsNullOrEmpty(src.Email)))
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.Files, opt => opt.Ignore())
+                .ReverseMap();
+
 
             // Map File
             CreateMap<File, FileDto>()

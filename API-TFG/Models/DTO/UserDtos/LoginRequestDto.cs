@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace API_TFG.Models.DTO
+namespace API_TFG.Models.DTO.UserDtos
 {
     public class LoginRequestDto
     {
         [Required]
         [EmailAddress]
-        public string Username { get; set; }
+        public string Email { get; set; }
 
         [Required]
         [PasswordPropertyText]

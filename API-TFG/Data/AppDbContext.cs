@@ -34,7 +34,7 @@ namespace API_TFG.Data
             modelBuilder.Entity<UserFile>()
                 .HasOne(uf => uf.User) // Relación con User
                 .WithMany() // Un usuario puede compartir muchos archivos
-                .OnDelete(DeleteBehavior.Cascade); // Eliminar registros en cascada
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configuración de AuditLog
             modelBuilder.Entity<AuditLog>()
@@ -72,7 +72,6 @@ namespace API_TFG.Data
             };
 
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
-
         }
     }
 }

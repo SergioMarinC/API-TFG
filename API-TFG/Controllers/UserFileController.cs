@@ -2,6 +2,7 @@
 using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
+using API_TFG.Models.DTO.UserDtos;
 using API_TFG.Models.Enum;
 using API_TFG.Repositories;
 using AutoMapper;

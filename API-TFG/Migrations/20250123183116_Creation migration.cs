@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace API_TFG.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialmigration : Migration
+    public partial class Creationmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -220,7 +220,7 @@ namespace API_TFG.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_UserFiles_Files_FileID",
                         column: x => x.FileID,

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API_TFG.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250121173724_Initial migration")]
-    partial class Initialmigration
+    [Migration("20250123183116_Creation migration")]
+    partial class Creationmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -373,7 +373,7 @@ namespace API_TFG.Migrations
                     b.HasOne("API_TFG.Models.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("File");

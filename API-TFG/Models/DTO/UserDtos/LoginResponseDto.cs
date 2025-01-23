@@ -1,4 +1,4 @@
-﻿namespace API_TFG.Models.DTO
+﻿namespace API_TFG.Models.DTO.UserDtos
 {
     public class LoginResponseDto
     {

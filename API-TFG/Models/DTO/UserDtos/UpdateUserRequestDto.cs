@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace API_TFG.Models.DTO
+namespace API_TFG.Models.DTO.UserDtos
 {
     public class UpdateUserRequestDto
     {

@@ -17,10 +17,12 @@ namespace API_TFG.Repositories
 
         public string CreateJWTToken(User user, List<string> roles)
         {
-            //Create claims
-            var claims = new List<Claim>();
-
-            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            // Create claims
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // ID del usuario
+                new Claim(ClaimTypes.Email, user.Email)
+            };
 
             foreach (var role in roles)
             {
@@ -31,13 +33,14 @@ namespace API_TFG.Repositories
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                Configuration["Jwt:Issuer"],
-                Configuration["Jwt:Audience"],
-                claims,
-                expires: DateTime.Now.AddMinutes(15),
+                issuer: Configuration["Jwt:Issuer"],
+                audience: Configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
     }
 }
