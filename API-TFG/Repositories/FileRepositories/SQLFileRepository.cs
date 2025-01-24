@@ -1,5 +1,4 @@
-﻿
-using API_TFG.Data;
+﻿using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
 using AutoMapper;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
-namespace API_TFG.Repositories
+namespace API_TFG.Repositories.FileRepositories
 {
     public class SQLFileRepository : IFileRepository
     {
@@ -17,50 +16,52 @@ namespace API_TFG.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<List<Models.Domain.File>> GetAllAsync([FromQuery] string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
-        {
-            var files = dbContext.Files.AsQueryable();
+        //public async Task<List<Models.Domain.File>> GetAllAsync([FromQuery] string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
+        //{
+        //    var files = dbContext.Files.AsQueryable();
 
-            //Filtering
-            if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
-            {
-                if (filterOn.Equals("filename", StringComparison.OrdinalIgnoreCase))
-                {
-                    files = files.Where(x => x.FileName.Contains(filterQuery));
-                }
-            }
+        //    //Filtering
+        //    if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
+        //    {
+        //        if (filterOn.Equals("filename", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            files = files.Where(x => x.FileName.Contains(filterQuery));
+        //        }
+        //    }
 
-            //Sorting
-            if (string.IsNullOrWhiteSpace(sortBy) == false)
-            {
-                if (sortBy.Equals("filename", StringComparison.OrdinalIgnoreCase))
-                {
-                    files = isAscending ? files.OrderBy(x  => x.FileName): files.OrderByDescending(x => x.FileName);
-                }
-                else if (sortBy.Equals("FileSize", StringComparison.OrdinalIgnoreCase))
-                {
-                    files = isAscending ? files.OrderBy(x => x.FileSize) : files.OrderByDescending(x => x.FileSize);
-                }
-                else if (sortBy.Equals("CreatedDate", StringComparison.OrdinalIgnoreCase))
-                {
-                    files = isAscending ? files.OrderBy(x => x.CreatedDate) : files.OrderByDescending(x => x.CreatedDate);
-                }
-            }
+        //    //Sorting
+        //    if (string.IsNullOrWhiteSpace(sortBy) == false)
+        //    {
+        //        if (sortBy.Equals("filename", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            files = isAscending ? files.OrderBy(x => x.FileName) : files.OrderByDescending(x => x.FileName);
+        //        }
+        //        else if (sortBy.Equals("FileSize", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            files = isAscending ? files.OrderBy(x => x.FileSize) : files.OrderByDescending(x => x.FileSize);
+        //        }
+        //        else if (sortBy.Equals("CreatedDate", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            files = isAscending ? files.OrderBy(x => x.CreatedDate) : files.OrderByDescending(x => x.CreatedDate);
+        //        }
+        //    }
 
-            //Pagination
-            var skipResults = (pageNumber - 1) * pageSize;
+        //    //Pagination
+        //    var skipResults = (pageNumber - 1) * pageSize;
 
-            return await files.Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
-        }
+        //    return await files.Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
+        //}
 
         public async Task<Models.Domain.File?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
+            return await dbContext.Files.Include(f => f.Owner)
+                .Include(f => f.SharedWithUsers)
+                .FirstOrDefaultAsync(f => f.FileID == id);
         }
 
         public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id, string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
         {
-            if(!await dbContext.Files.AnyAsync(x => x.Owner.Id == id))
+            if (!await dbContext.Files.AnyAsync(x => x.Owner.Id == id))
             {
                 return null;
             }
@@ -97,11 +98,6 @@ namespace API_TFG.Repositories
             var skipResults = (pageNumber - 1) * pageSize;
 
             return await files.Where(f => f.Owner.Id == id && !f.IsDeleted).Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
-        }
-
-        public Task<Models.Domain.File> ShareAsync(Guid id)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<Models.Domain.File?> UpdateAsync(Guid id, Models.Domain.File file)
@@ -181,11 +177,11 @@ namespace API_TFG.Repositories
         {
             var existingFile = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
 
-            if(existingFile == null)
+            if (existingFile == null)
             {
                 return null;
             }
-            
+
             var baseUploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
             var userRootFolder = Path.Combine(baseUploadsPath, existingFile.Owner.Id.ToString());
             var filePath = Path.Combine(userRootFolder, existingFile.FilePath ?? string.Empty, existingFile.FileName);
@@ -246,7 +242,7 @@ namespace API_TFG.Repositories
             }
 
             var userRootFolder = Path.Combine("uploads", file.Owner.Id.ToString());
-            var fullFilePath = Path.Combine(userRootFolder,file.FilePath,file.FileName);
+            var fullFilePath = Path.Combine(userRootFolder, file.FilePath, file.FileName);
 
             // Verificar si el archivo existe físicamente
             if (!System.IO.File.Exists(fullFilePath))
@@ -287,6 +283,15 @@ namespace API_TFG.Repositories
             await dbContext.SaveChangesAsync();
 
             return existingFile;
+        }
+
+        public async Task<List<Models.Domain.File>?> GetFilesSharedWithUserAsync(Guid id)
+        {
+            return await dbContext.UserFiles
+                .Where(uf => uf.User.Id == id)
+                .Select(uf => uf.File)
+                .Include(f => f.Owner)
+                .ToListAsync();
         }
     }
 }

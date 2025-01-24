@@ -3,7 +3,7 @@ using API_TFG.Models.Domain;
 using API_TFG.Models.Enum;
 using Microsoft.EntityFrameworkCore;
 
-namespace API_TFG.Repositories
+namespace API_TFG.Repositories.UserFileRepositories
 {
     public class SQLUserFileRepository : IUserFileRepository
     {

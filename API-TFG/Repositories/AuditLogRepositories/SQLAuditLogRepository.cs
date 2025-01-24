@@ -1,7 +1,7 @@
 ﻿using API_TFG.Data;
 using API_TFG.Models.Domain;
 
-namespace API_TFG.Repositories
+namespace API_TFG.Repositories.AuditLogRepositories
 {
     public class SQLAuditLogRepository : IAuditLogRepository
     {

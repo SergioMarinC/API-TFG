@@ -1,7 +1,8 @@
 ﻿using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
+using API_TFG.Models.DTO.FileDtos;
 using API_TFG.Models.DTO.UserDtos;
-using API_TFG.Repositories;
+using API_TFG.Repositories.FileRepositories;
 using AutoMapper;
 using File = API_TFG.Models.Domain.File;
 

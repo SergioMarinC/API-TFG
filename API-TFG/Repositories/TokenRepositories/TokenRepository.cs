@@ -4,7 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace API_TFG.Repositories
+namespace API_TFG.Repositories.TokenRepositories
 {
     public class TokenRepository : ITokenRepository
     {
@@ -15,7 +15,7 @@ namespace API_TFG.Repositories
 
         public IConfiguration Configuration { get; }
 
-        public string CreateJWTToken(User user, List<string> roles)
+        public async Task<string> CreateJWTToken(User user, List<string> roles)
         {
             // Create claims
             var claims = new List<Claim>
@@ -41,6 +41,5 @@ namespace API_TFG.Repositories
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
     }
 }

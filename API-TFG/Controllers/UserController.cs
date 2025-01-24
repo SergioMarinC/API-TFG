@@ -2,7 +2,7 @@
 using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO.UserDtos;
-using API_TFG.Repositories;
+using API_TFG.Repositories.UserRepositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

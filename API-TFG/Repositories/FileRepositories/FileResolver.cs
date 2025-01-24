@@ -5,7 +5,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using File = API_TFG.Models.Domain.File;
 
-namespace API_TFG.Repositories
+namespace API_TFG.Repositories.FileRepositories
 {
     public class FileResolver : IValueResolver<ShareFileDto, UserFile, File>
     {

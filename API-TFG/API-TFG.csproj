@@ -25,12 +25,6 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\DTO\FileDtos\" />
     <Folder Include="Models\DTO\UserFileDtos\" />
-    <Folder Include="Repositories\FileRepositories\" />
-    <Folder Include="Repositories\AuditLogRepositories\" />
-    <Folder Include="Repositories\TokenRepositories\" />
-    <Folder Include="Repositories\UserFileRepositories\" />
-    <Folder Include="Repositories\UserRepositories\" />
   </ItemGroup>
 </Project>

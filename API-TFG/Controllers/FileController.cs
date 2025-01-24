@@ -2,11 +2,17 @@
 using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO;
-using API_TFG.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using API_TFG.Models.Enum;
 using Microsoft.AspNetCore.Mvc;
+using API_TFG.Repositories.UserRepositories;
+using API_TFG.Repositories.FileRepositories;
+using API_TFG.Repositories.AuditLogRepositories;
+using API_TFG.Repositories.TokenRepositories;
+using System.Security.Claims;
+using API_TFG.Models.DTO.FileDtos;
 
 namespace API_TFG.Controllers
 {
@@ -28,17 +34,17 @@ namespace API_TFG.Controllers
             this.userRepository = userRepository;
         }
 
-        /// <summary>
-        /// Get all files in the database
-        /// </summary>
-        /// <returns>List of Files</returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
-        {
-            var files = await fileRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
+        ///// <summary>
+        ///// Get all files in the database
+        ///// </summary>
+        ///// <returns>List of Files</returns>
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
+        //{
+        //    var files = await fileRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
 
-            return Ok(mapper.Map<List<FileDto>>(files));
-        }
+        //    return Ok(mapper.Map<List<FileDto>>(files));
+        //}
 
         /// <summary>
         /// Get file by ID of the file
@@ -49,7 +55,22 @@ namespace API_TFG.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
+            // Obtener el ID del usuario autenticado desde el token
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            //Obtiene el file
             var file = await fileRepository.GetByIdAsync(id);
+
+            // Verificar que el usuario autenticado coincide con el ID del propietario o que lo tiene compartido
+            if (authenticatedUserGuid != file.Owner.Id || (file.Owner.Id != authenticatedUserGuid && !file.SharedWithUsers.Any(swu => swu.User.Id == authenticatedUserGuid)))
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
 
             if (file == null)
             {
@@ -68,6 +89,18 @@ namespace API_TFG.Controllers
         [Route("user/{id:Guid}")]
         public async Task<IActionResult> GetByUserId([FromRoute] Guid id, [FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            // Verificar que el usuario autenticado coincide con el ID del propietario
+            if (authenticatedUserGuid != id)
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
             var files = await fileRepository.GetAllByUserIdAsync(id, filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
 
             if (files == null)
@@ -89,6 +122,21 @@ namespace API_TFG.Controllers
         {
             var file = mapper.Map<Models.Domain.File>(fileUploadDto);
             var owner = await userRepository.GetByIdAsync(fileUploadDto.OwnerID);
+
+            // Obtener el ID del usuario autenticado desde el token
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            // Verificar que el usuario autenticado coincide con el ID del propietario
+            if (authenticatedUserGuid != owner.Id)
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
+
             if (owner == null) 
             {
                 return NotFound("The user doesn't exist.");
@@ -101,7 +149,7 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(savedFile);
 
-            auditLog.Action = Models.Enum.ActionType.Upload;
+            auditLog.Action = ActionType.Upload;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
@@ -119,7 +167,23 @@ namespace API_TFG.Controllers
         [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateFileRequestDto updateFileRequestDto)
         {
+
             var updatedFile = mapper.Map<Models.Domain.File>(updateFileRequestDto);
+
+            var owner = await userRepository.GetByIdAsync(id);
+
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            // Verificar que el usuario autenticado coincide con el ID del propietario
+            if (authenticatedUserGuid != owner.Id)
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
 
             var file = await fileRepository.UpdateAsync(id, updatedFile);
 
@@ -131,7 +195,7 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.Update;
+            auditLog.Action = ActionType.Update;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
@@ -147,6 +211,23 @@ namespace API_TFG.Controllers
         [Route("download/{id:Guid}")]
         public async Task<IActionResult> DownloadFile([FromRoute] Guid id)
         {
+            // Obtener el ID del usuario autenticado desde el token
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            //Obtiene el file
+            var fileCheck = await fileRepository.GetByIdAsync(id);
+
+            // Verificar que el usuario autenticado coincide con el ID del propietario o que lo tiene compartido
+            if (authenticatedUserGuid != fileCheck.Owner.Id || (fileCheck.Owner.Id != authenticatedUserGuid && !fileCheck.SharedWithUsers.Any(swu => swu.User.Id == authenticatedUserGuid)))
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
+
             // Llamar al repositorio para obtener el archivo y su contenido
             var (file, fileContent) = await fileRepository.DownloadAsync(id);
 
@@ -163,7 +244,7 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.Download;
+            auditLog.Action = ActionType.Download;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
@@ -184,6 +265,21 @@ namespace API_TFG.Controllers
         [Route("remove/{id:Guid}")]
         public async Task<IActionResult> Remove([FromRoute] Guid id)
         {
+            // Obtener el ID del usuario autenticado desde el token
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            var fileCheck = await fileRepository.GetByIdAsync(id);
+            // Verificar que el usuario autenticado coincide con el ID solicitado
+            if (authenticatedUserGuid != fileCheck.Owner.Id)
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
+
             var file = await fileRepository.SoftDelete(id);
 
             if (file == null)
@@ -191,10 +287,11 @@ namespace API_TFG.Controllers
                 return NotFound();
             }
 
+
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.SoftDelete;
+            auditLog.Action = ActionType.SoftDelete;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
@@ -210,6 +307,21 @@ namespace API_TFG.Controllers
         [Route("restore/{id:guid}")]
         public async Task<IActionResult> Restore([FromRoute] Guid id)
         {
+            // Obtener el ID del usuario autenticado desde el token
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            var fileCheck = await fileRepository.GetByIdAsync(id);
+            // Verificar que el usuario autenticado coincide con el ID solicitado
+            if (authenticatedUserGuid != fileCheck.Owner.Id)
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
+
             var file = await fileRepository.Restore(id);
 
             if (file == null)
@@ -220,7 +332,7 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.Restore;
+            auditLog.Action = ActionType.Restore;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
@@ -236,6 +348,21 @@ namespace API_TFG.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
+            // Obtener el ID del usuario autenticado desde el token
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (authenticatedUserId == null || !Guid.TryParse(authenticatedUserId, out Guid authenticatedUserGuid))
+            {
+                return Unauthorized("User ID not found or invalid.");
+            }
+
+            var fileCheck = await fileRepository.GetByIdAsync(id);
+            // Verificar que el usuario autenticado coincide con el ID solicitado
+            if (authenticatedUserGuid != fileCheck.Owner.Id)
+            {
+                return Forbid("You are not allowed to update another user's data.");
+            }
+
             var file = await fileRepository.HardDelete(id);
 
             if (file == null)
@@ -246,11 +373,11 @@ namespace API_TFG.Controllers
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(file);
 
-            auditLog.Action = Models.Enum.ActionType.HardDelete;
+            auditLog.Action = ActionType.HardDelete;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
             return Ok(mapper.Map<FileDto>(file));
-        }
+        } 
     }
 }

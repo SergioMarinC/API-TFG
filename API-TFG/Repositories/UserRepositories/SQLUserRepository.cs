@@ -1,6 +1,8 @@
 ﻿using API_TFG.Data;
 using API_TFG.Models.Domain;
 using API_TFG.Models.DTO.UserDtos;
+using API_TFG.Repositories.TokenRepositories;
+using API_TFG.Repositories.UserRepositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -63,7 +65,7 @@ namespace API_TFG.Repositories
                     {
                         //Create Token
 
-                        return tokenRepository.CreateJWTToken(userLogin, roles.ToList());
+                        return await tokenRepository.CreateJWTToken(userLogin, roles.ToList());
 
                     }
                 }
@@ -150,57 +152,5 @@ namespace API_TFG.Repositories
         {
             throw new NotImplementedException();
         }
-
-        //public async Task<List<User>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
-        //{
-        //    var users = dbContext.Users.AsQueryable();
-
-        //    //Filtering
-        //    if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
-        //    {
-        //        if (filterOn.Equals("UserName", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            users = users.Where(x => x.UserName.Contains(filterQuery));
-        //        }
-        //        if (filterOn.Equals("email", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            users = users.Where(x => x.Email.Contains(filterQuery));
-        //        }
-        //    }
-
-        //    //Sorting
-        //    if (string.IsNullOrWhiteSpace(sortBy) == false)
-        //    {
-        //        if (sortBy.Equals("username", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            users = isAscending ? users.OrderBy(x => x.UserName) : users.OrderByDescending(x => x.UserName);
-        //        }
-        //        else if (sortBy.Equals("email", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            users = isAscending ? users.OrderBy(x => x.Email) : users.OrderByDescending(x => x.Email);
-        //        }
-        //    }
-
-        //    //Pagination
-        //    var skipResults = (pageNumber - 1) * pageSize;
-
-        //    return await users.Skip(skipResults).Take(pageSize).ToListAsync();
-        //}
-
-        //public async Task<User?> GetByEmailAsync(string email)
-        //{
-        //    return await dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-        //}
-
-
-
-        //public async Task<User?> GetByUsernameAsync(string username)
-        //{
-        //    return await dbContext.Users.FirstOrDefaultAsync(u => u.UserName == username);
-        //}
-
-
-
-
     }
 }
