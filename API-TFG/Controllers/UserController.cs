@@ -43,7 +43,7 @@ namespace API_TFG.Controllers
                 return BadRequest("No se ha podido crear el usuario");
             }
             
-            return Ok($"Usuario creado correctamente");
+            return Ok(mapper.Map<UserDto>(user));
 
         }
 

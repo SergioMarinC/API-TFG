@@ -295,7 +295,7 @@ namespace API_TFG.Controllers
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
-            return Ok(mapper.Map<FileDto>(file));
+            return Ok("Successfully removed");
         }
 
         /// <summary>
@@ -336,7 +336,7 @@ namespace API_TFG.Controllers
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
-            return Ok(mapper.Map<FileDto>(file));
+            return Ok("Successfully restored");
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace API_TFG.Controllers
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
-            return Ok(mapper.Map<FileDto>(file));
+            return Ok("Successfully deleted");
         } 
     }
 }

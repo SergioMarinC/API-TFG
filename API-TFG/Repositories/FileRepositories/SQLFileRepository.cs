@@ -97,7 +97,7 @@ namespace API_TFG.Repositories.FileRepositories
             //Pagination
             var skipResults = (pageNumber - 1) * pageSize;
 
-            return await files.Where(f => f.Owner.Id == id && !f.IsDeleted).Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
+            return await files.Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
         }
 
         public async Task<Models.Domain.File?> UpdateAsync(Guid id, Models.Domain.File file)

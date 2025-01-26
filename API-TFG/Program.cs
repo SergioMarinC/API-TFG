@@ -19,6 +19,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirAngular",
+        policy => policy.WithOrigins("http://localhost:4200") // Cambia este valor si tu app Angular usa otro puerto
+                         .AllowAnyMethod()
+                         .AllowAnyHeader());
+});
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -106,6 +114,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("PermitirAngular");
 
 app.UseAuthentication();
 app.UseAuthorization();
