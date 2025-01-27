@@ -1,7 +1,6 @@
 ﻿using API_TFG.CustomActionFilters;
 using API_TFG.Data;
 using API_TFG.Models.Domain;
-using API_TFG.Models.DTO;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -33,18 +32,6 @@ namespace API_TFG.Controllers
             this.mapper = mapper;
             this.userRepository = userRepository;
         }
-
-        ///// <summary>
-        ///// Get all files in the database
-        ///// </summary>
-        ///// <returns>List of Files</returns>
-        //[HttpGet]
-        //public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
-        //{
-        //    var files = await fileRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
-
-        //    return Ok(mapper.Map<List<FileDto>>(files));
-        //}
 
         /// <summary>
         /// Get file by ID of the file
@@ -219,13 +206,13 @@ namespace API_TFG.Controllers
                 return Unauthorized("User ID not found or invalid.");
             }
 
-            //Obtiene el file
+            // Obtiene el archivo
             var fileCheck = await fileRepository.GetByIdAsync(id);
 
             // Verificar que el usuario autenticado coincide con el ID del propietario o que lo tiene compartido
-            if (authenticatedUserGuid != fileCheck.Owner.Id || (fileCheck.Owner.Id != authenticatedUserGuid && !fileCheck.SharedWithUsers.Any(swu => swu.User.Id == authenticatedUserGuid)))
+            if (authenticatedUserGuid != fileCheck.Owner.Id && (fileCheck.SharedWithUsers == null || !fileCheck.SharedWithUsers.Any(swu => swu.User.Id == authenticatedUserGuid)))
             {
-                return Forbid("You are not allowed to update another user's data.");
+                return Forbid("You are not allowed to access this file.");
             }
 
             // Llamar al repositorio para obtener el archivo y su contenido
@@ -241,9 +228,8 @@ namespace API_TFG.Controllers
                 return NotFound("File does not exist on the server.");
             }
 
-            //AuditLog
+            // Audit log
             var auditLog = mapper.Map<AuditLog>(file);
-
             auditLog.Action = ActionType.Download;
 
             await auditLogRepository.CreateAuditLogAsync(auditLog);
@@ -254,6 +240,7 @@ namespace API_TFG.Controllers
             // Devolver el archivo como respuesta
             return File(fileContent, contentType, file.FileName);
         }
+
 
 
         /// <summary>

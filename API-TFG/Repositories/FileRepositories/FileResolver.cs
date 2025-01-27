@@ -1,6 +1,6 @@
 ﻿using API_TFG.Data;
 using API_TFG.Models.Domain;
-using API_TFG.Models.DTO;
+using API_TFG.Models.DTO.UserFileDtos;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using File = API_TFG.Models.Domain.File;

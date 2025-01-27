@@ -5,7 +5,7 @@ namespace API_TFG.Repositories.UserFileRepositories
 {
     public interface IUserFileRepository
     {
-        Task<UserFile> CreateAsync(UserFile userFile);
+        Task<UserFile?> CreateAsync(UserFile userFile, string email);
         Task<List<UserFile>> GetFilesSharedWithUserAsync(Guid userId);
         Task<List<UserFile>> GetUserWithAccesToFileAsync(Guid fileId);
         Task<UserFile?> UpdatePermissionsAsync(int userFileId, PermissionType permissionType);

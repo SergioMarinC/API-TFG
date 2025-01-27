@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace API_TFG.Models.DTO
+namespace API_TFG.Models.DTO.FileDtos
 {
     public class FileUploadDto
     {

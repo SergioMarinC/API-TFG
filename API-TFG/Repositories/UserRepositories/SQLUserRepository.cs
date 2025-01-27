@@ -128,29 +128,28 @@ namespace API_TFG.Repositories
                 return null;
             }
 
-            if (existingUser.Files != null && existingUser.Files.Any())
+            // Eliminar archivos asociados al usuario de manera manual
+            var filesToDelete = appDbContext.Files.Where(f => f.Owner.Id == id).ToList();
+            if (filesToDelete.Any())
             {
-                foreach (var file in existingUser.Files)
-                {
-                    appDbContext.Files.Remove(file);
-                }
+                appDbContext.Files.RemoveRange(filesToDelete);
+                await appDbContext.SaveChangesAsync(); // Asegúrate de guardar los cambios antes de eliminar al usuario
             }
+
+            // Eliminar el usuario
             var result = await userManager.DeleteAsync(existingUser);
             if (result.Succeeded)
             {
                 return existingUser;
             }
+
             return null;
         }
 
-        public Task<User?> GetByUsernameAsync(string username)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<User?> GetByEmailAsync(string email)
+        public async Task<bool> CheckPassWordAsync(User user, string password)
         {
-            throw new NotImplementedException();
+            return await userManager.CheckPasswordAsync(user, password);
         }
     }
 }

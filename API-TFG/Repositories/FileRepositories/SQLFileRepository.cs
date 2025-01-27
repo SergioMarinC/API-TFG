@@ -16,48 +16,15 @@ namespace API_TFG.Repositories.FileRepositories
             this.dbContext = dbContext;
         }
 
-        //public async Task<List<Models.Domain.File>> GetAllAsync([FromQuery] string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
-        //{
-        //    var files = dbContext.Files.AsQueryable();
-
-        //    //Filtering
-        //    if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
-        //    {
-        //        if (filterOn.Equals("filename", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            files = files.Where(x => x.FileName.Contains(filterQuery));
-        //        }
-        //    }
-
-        //    //Sorting
-        //    if (string.IsNullOrWhiteSpace(sortBy) == false)
-        //    {
-        //        if (sortBy.Equals("filename", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            files = isAscending ? files.OrderBy(x => x.FileName) : files.OrderByDescending(x => x.FileName);
-        //        }
-        //        else if (sortBy.Equals("FileSize", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            files = isAscending ? files.OrderBy(x => x.FileSize) : files.OrderByDescending(x => x.FileSize);
-        //        }
-        //        else if (sortBy.Equals("CreatedDate", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            files = isAscending ? files.OrderBy(x => x.CreatedDate) : files.OrderByDescending(x => x.CreatedDate);
-        //        }
-        //    }
-
-        //    //Pagination
-        //    var skipResults = (pageNumber - 1) * pageSize;
-
-        //    return await files.Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
-        //}
-
         public async Task<Models.Domain.File?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Files.Include(f => f.Owner)
+            return await dbContext.Files
+                .Include(f => f.Owner)
                 .Include(f => f.SharedWithUsers)
+                .ThenInclude(swu => swu.User)
                 .FirstOrDefaultAsync(f => f.FileID == id);
         }
+
 
         public async Task<List<Models.Domain.File>?> GetAllByUserIdAsync(Guid id, string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
         {
@@ -97,44 +64,36 @@ namespace API_TFG.Repositories.FileRepositories
             //Pagination
             var skipResults = (pageNumber - 1) * pageSize;
 
-            return await files.Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
+            return await files.Where(f => f.Owner.Id == id).Skip(skipResults).Take(pageSize).Include(f => f.Owner).ToListAsync();
         }
 
         public async Task<Models.Domain.File?> UpdateAsync(Guid id, Models.Domain.File file)
         {
-            // Buscar el archivo existente en la base de datos
             var existingFile = await dbContext.Files.Include(f => f.Owner).FirstOrDefaultAsync(f => f.FileID == id);
             if (existingFile == null)
             {
-                return null; // Archivo no encontrado
+                return null;
             }
 
-            // Mantener la extensión original del archivo
             var originalExtension = Path.GetExtension(existingFile.FileName);
             var newFileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
             var newFileName = $"{newFileNameWithoutExtension}{originalExtension}";
 
-            // Obtener la ruta base para "uploads" (dentro del directorio del proyecto)
             var baseUploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
 
-            // Ruta antigua: dentro de la carpeta del usuario
             var userRootFolder = Path.Combine(baseUploadsPath, existingFile.Owner.Id.ToString());
             var oldFilePath = Path.Combine(userRootFolder, existingFile.FilePath ?? string.Empty, existingFile.FileName);
 
-            // Nueva ruta: carpeta del usuario + nueva subcarpeta (si se proporciona) + nuevo nombre de archivo
             var newFilePath = Path.Combine(userRootFolder, file.FilePath ?? string.Empty, newFileName);
 
-            // Si la ruta ha cambiado, mover el archivo
             if (!string.Equals(oldFilePath, newFilePath, StringComparison.OrdinalIgnoreCase))
             {
-                // Asegurar que la nueva carpeta existe
                 var newFolderPath = Path.GetDirectoryName(newFilePath);
                 if (!Directory.Exists(newFolderPath))
                 {
                     Directory.CreateDirectory(newFolderPath);
                 }
 
-                // Mover el archivo si existe en la ubicación anterior
                 if (System.IO.File.Exists(oldFilePath))
                 {
                     System.IO.File.Move(oldFilePath, newFilePath);
@@ -145,11 +104,9 @@ namespace API_TFG.Repositories.FileRepositories
                 }
             }
 
-            // Actualizar los datos del archivo en la base de datos
             existingFile.FileName = newFileName;
             existingFile.FilePath = file.FilePath ?? string.Empty;
 
-            // Guardar cambios
             dbContext.Files.Update(existingFile);
             await dbContext.SaveChangesAsync();
 

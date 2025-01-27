@@ -1,8 +1,8 @@
 ﻿using API_TFG.CustomActionFilters;
 using API_TFG.Data;
 using API_TFG.Models.Domain;
-using API_TFG.Models.DTO;
 using API_TFG.Models.DTO.UserDtos;
+using API_TFG.Models.DTO.UserFileDtos;
 using API_TFG.Models.Enum;
 using API_TFG.Repositories.AuditLogRepositories;
 using API_TFG.Repositories.UserFileRepositories;
@@ -40,7 +40,7 @@ namespace API_TFG.Controllers
         {
             var userFiles = await userFileRepository.GetFilesSharedWithUserAsync(userId);
 
-            if (userFiles.Any())
+            if (!userFiles.Any())
             {
                 return NotFound("No hay archivos compartidos para este usuario");
             }
@@ -97,15 +97,22 @@ namespace API_TFG.Controllers
         public async Task<IActionResult> ShareFile([FromForm] ShareFileDto addUserFileDto)
         {
             var userFile = mapper.Map<UserFile>(addUserFileDto);
-            
-            var createdUserFile = await userFileRepository.CreateAsync(userFile);
+
+            var createdUserFile = await userFileRepository.CreateAsync(userFile, addUserFileDto.Email);
+
+
+            if (createdUserFile == null)
+            {
+                return BadRequest("Email incorrecto");
+            }
 
             //AuditLog
             var auditLog = mapper.Map<AuditLog>(userFile);
             auditLog.Action = ActionType.Share;
             await auditLogRepository.CreateAuditLogAsync(auditLog);
 
-            return Ok(mapper.Map<ShareFileDto>(createdUserFile));
+
+            return Ok(new { message = "Archivo compartido correctamente" });
         }
 
         /// <summary>

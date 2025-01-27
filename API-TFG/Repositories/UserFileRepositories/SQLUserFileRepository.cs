@@ -13,8 +13,16 @@ namespace API_TFG.Repositories.UserFileRepositories
             this.dbContext = dbContext;
         }
 
-        public async Task<UserFile> CreateAsync(UserFile userFile)
+        public async Task<UserFile?> CreateAsync(UserFile userFile, string email)
         {
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null) 
+            {
+                return null;
+            }
+
+            userFile.User = user;
+
             await dbContext.UserFiles.AddAsync(userFile);
             await dbContext.SaveChangesAsync();
 
@@ -23,10 +31,13 @@ namespace API_TFG.Repositories.UserFileRepositories
 
         public async Task<List<UserFile>> GetFilesSharedWithUserAsync(Guid userId)
         {
-            return await dbContext.UserFiles.Include(uf => uf.File)
+            return await dbContext.UserFiles
+                .Include(uf => uf.File)
+                .Include(uf => uf.File.Owner)
                 .Where(uf => uf.User.Id == userId)
                 .ToListAsync();
         }
+
 
         public async Task<UserFile?> GetUserFileAccessAsync(Guid userId, Guid fileId)
         {
@@ -45,7 +56,10 @@ namespace API_TFG.Repositories.UserFileRepositories
 
         public async Task<UserFile?> RemoveUserAccessAsync(int userFileId)
         {
-            var userFile = await dbContext.UserFiles.FindAsync(userFileId);
+            var userFile = await dbContext.UserFiles
+                .Include(uf => uf.File) // Incluye los datos del archivo relacionado
+                .Include(uf => uf.User) // Incluye los datos del usuario relacionado
+                .FirstOrDefaultAsync(uf => uf.UserFileID == userFileId);
 
             if (userFile == null)
             {
@@ -60,7 +74,9 @@ namespace API_TFG.Repositories.UserFileRepositories
 
         public async Task<UserFile?> UpdatePermissionsAsync(int userFileId, PermissionType permissionType)
         {
-            var existingUserFile = await dbContext.UserFiles.FindAsync(userFileId);
+            var existingUserFile = await dbContext.UserFiles
+                .Include(uf => uf.File) // Incluir la entidad relacionada File
+                .FirstOrDefaultAsync(uf => uf.UserFileID == userFileId);
 
             if (existingUserFile == null)
             {

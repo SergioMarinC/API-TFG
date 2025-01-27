@@ -11,8 +11,6 @@ namespace API_TFG.Repositories.UserRepositories
         Task<User?> GetByIdAsync(Guid id);
         Task<User?> UpdateAsync(Guid id, User user, string password);
         Task<User?> DeleteAsync(Guid id);
-        //Task<List<User>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000);
-        Task<User?> GetByUsernameAsync(string username);
-        Task<User?> GetByEmailAsync(string email);
+        Task<bool> CheckPassWordAsync(User user, string password);
     }
 }

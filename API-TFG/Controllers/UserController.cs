@@ -118,7 +118,7 @@ namespace API_TFG.Controllers
         //DELETE USER
         [HttpDelete]
         [Route("{id:Guid}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id, [FromBody] DeleteUserRequestDto deleteUserRequestDto)
         {
             var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -133,14 +133,25 @@ namespace API_TFG.Controllers
                 return Forbid("You are not allowed to update another user's data.");
             }
 
-            var user = await userRepository.DeleteAsync(id);
+            var user = await userRepository.GetByIdAsync(id);
 
             if (user == null)
             {
-                return BadRequest("Failed to delete user");
+                return BadRequest("User not found");
             }
 
-            return Ok(mapper.Map<UserDto>(user));
+            if(!await userRepository.CheckPassWordAsync(user, deleteUserRequestDto.Password))
+            {
+                return BadRequest("Incorrect password");
+            }
+
+            var result = await userRepository.DeleteAsync(id);
+            if (result == null)
+            {
+                return StatusCode(500, "An error occurred while deleting the account.");
+            }
+
+            return Ok("Account succesfully deleted");
         }
     }
 }

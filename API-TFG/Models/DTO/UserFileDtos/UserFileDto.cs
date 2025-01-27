@@ -2,7 +2,7 @@
 using API_TFG.Models.Enum;
 using System.ComponentModel.DataAnnotations;
 
-namespace API_TFG.Models.DTO
+namespace API_TFG.Models.DTO.UserFileDtos
 {
     public class UserFileDto
     {

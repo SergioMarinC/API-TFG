@@ -36,7 +36,7 @@ namespace API_TFG.Repositories.TokenRepositories
                 issuer: Configuration["Jwt:Issuer"],
                 audience: Configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
